@@ -6,6 +6,7 @@ import express from 'express';
 import passport, { configurePassport } from './middleware/googleAuth.js';
 import connectDB from './config/mongodb.js';
 import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
 
 configurePassport();
 
@@ -18,6 +19,7 @@ app.use(passport.initialize());
 connectDB();
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.listen(process.env.PORT || 3000, () => {
     console.log("Server is running on port " + (process.env.PORT || 3000));
