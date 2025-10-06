@@ -1,5 +1,5 @@
 import express from 'express';
-import authController from '../controllers/auth.js';
+import { postLogin, postSignup, resetPassword, confirmResetPassword } from '../controllers/auth.js';
 import passport from '../middleware/googleAuth.js';
 import jwt from 'jsonwebtoken'; 
 import { confirmResetPasswordValidator, loginValidation, resetPasswordValidator, signupValidation } from '../validation/authValidation.js';
@@ -25,12 +25,12 @@ router.get(
   }
 );
 
-router.post('/login', loginValidation, authController.postLogin);
+router.post('/login', loginValidation, postLogin);
 
-router.post('/signup', signupValidation, authController.postSignup);
+router.post('/signup', signupValidation, postSignup);
 
-router.post('/reset-password', resetPasswordValidator, authController.resetPassword);
+router.post('/reset-password', resetPasswordValidator, resetPassword);
 
-router.post('/confirm-reset-password/', confirmResetPasswordValidator, authController.confirmResetPassword);
+router.post('/confirm-reset-password/', confirmResetPasswordValidator, confirmResetPassword);
 
 export default router;

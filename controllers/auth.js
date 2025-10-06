@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport(sendgridTransport({
 }));
 
 
-const postLogin = async (req, res, next) => {
+export const postLogin = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
@@ -47,7 +47,7 @@ const postLogin = async (req, res, next) => {
 }
 
 
-const postSignup = async (req, res, next) => {
+export const postSignup = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         
@@ -89,7 +89,7 @@ const postSignup = async (req, res, next) => {
     }
 }
 
-const resetPassword = async (req, res, next) => {
+export const resetPassword = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
@@ -164,7 +164,7 @@ const resetPassword = async (req, res, next) => {
     }
 }
 
-const confirmResetPassword = async (req, res, next) => {
+export const confirmResetPassword = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
@@ -212,5 +212,3 @@ const confirmResetPassword = async (req, res, next) => {
         res.status(500).json({message: err.message});
     }
 }
-
-export default { postLogin, postSignup, resetPassword, confirmResetPassword };
