@@ -1,4 +1,3 @@
-import User from '../models/user.js';
 import isAuth from '../middleware/isAuth.js';
 import isAdmin from '../middleware/isAdmin.js';
 import express from 'express';
@@ -11,7 +10,12 @@ import {
     getMuscleById, 
     updateMuscle, 
     deleteMuscle,
-    createMuscle
+    createMuscle,
+    getAllExercises,
+    getExerciseById,
+    updateExercise,
+    deleteExercise,
+    createExercise
 } from '../controllers/admin.js';
 
 const router = express.Router();
@@ -33,5 +37,15 @@ router.put('/muscles/:id', isAuth, isAdmin, updateMuscle);
 router.post('/muscles', isAuth, isAdmin, createMuscle);
 
 router.delete('/muscles/:id', isAuth, isAdmin, deleteMuscle);
+
+router.get('/exercises', isAuth, isAdmin, getAllExercises);
+
+router.get('/exercises/:id', isAuth, isAdmin, getExerciseById);
+
+router.put('/exercises/:id', isAuth, isAdmin, updateExercise);
+
+router.post('/exercises', isAuth, isAdmin, createExercise);
+
+router.delete('/exercises/:id', isAuth, isAdmin, deleteExercise);
 
 export default router;

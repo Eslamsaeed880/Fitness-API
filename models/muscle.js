@@ -21,6 +21,8 @@ const muscleSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+muscleSchema.index({ name: 'text' });
+
 const Muscle = mongoose.model('Muscle', muscleSchema);
 
 export default Muscle;

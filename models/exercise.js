@@ -25,6 +25,8 @@ const exerciseSchema = new mongoose.Schema({
     }
 });
 
+exerciseSchema.index({ name: 'text', description: 'text' });
+
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 export default Exercise;

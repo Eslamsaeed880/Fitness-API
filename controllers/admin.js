@@ -1,5 +1,6 @@
 import User from '../models/user.js';
 import Muscle from '../models/muscle.js';
+import Exercise from '../models/exercise.js';
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -125,6 +126,111 @@ export const deleteMuscle = async (req, res) => {
             res.status(200).json({ message: 'Muscle deleted successfully.' });
         } else {
             res.status(404).json({ message: 'Muscle not found.' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const createExercise = async (req, res) => {
+    try {
+        const { name, description, primaryMuscle } = req.body;
+        const { secondaryMuscles } = req.body || [];
+        const { videoUrl } = req.body || '';
+        const newExercise = new Exercise({
+            name,
+            description,
+            primaryMuscle,
+            secondaryMuscles,
+            videoUrl
+        });
+        await newExercise.save();
+        res.status(201).json({ message: 'Exercise created successfully.', exercise: newExercise });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const getAllExercises = async (req, res) => {
+    try {
+        const { search, primaryMuscle, sort = 'name' } = req.query;
+
+        let filter = {};
+
+        if (search) {
+            filter.$text = { $search: search };
+        }
+
+        if (primaryMuscle) {
+            const muscle = await Muscle.findOne({ 
+                $text: { $search: primaryMuscle }
+            });
+            if (muscle) {
+                filter.primaryMuscle = muscle._id;
+            }
+        }
+
+        const sortOrder = sort === 'name' ? { name: 1 } : { name: -1 };
+
+        const exercises = await Exercise.find(filter)
+            .populate('primaryMuscle')
+            .populate('secondaryMuscles')
+            .sort(sortOrder);
+
+        res.status(200).json(exercises);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const getExerciseById = async (req, res) => {
+    try {
+        const exercise = await Exercise.findById(req.params.id)
+            .populate('primaryMuscle')
+            .populate('secondaryMuscles');
+
+        if (exercise) {
+            res.status(200).json(exercise);
+        } else {
+            res.status(404).json({ message: 'Exercise not found.' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const updateExercise = async (req, res) => {
+    try {
+        const { name, description, primaryMuscle } = req.body;
+        const { secondaryMuscles } = req.body || [];
+        const { videoUrl } = req.body || '';
+        const exercise = await Exercise.findById(req.params.id);
+
+        if (exercise) {
+            exercise.name = name;
+            exercise.description = description;
+            exercise.primaryMuscle = primaryMuscle;
+            exercise.secondaryMuscles = secondaryMuscles;
+            exercise.videoUrl = videoUrl;
+
+            await exercise.save();
+            res.status(200).json({ message: 'Exercise updated successfully.', exercise });
+        } else {
+            res.status(404).json({ message: 'Exercise not found.' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const deleteExercise = async (req, res) => {
+    try {
+        const exercise = await Exercise.findByIdAndDelete(req.params.id);
+
+        if (exercise) {
+            res.status(200).json({ message: 'Exercise deleted successfully.' });
+        } else {
+            res.status(404).json({ message: 'Exercise not found.' });
         }
     } catch (err) {
         res.status(500).json({ message: 'Server error.', error: err.message });
