@@ -26,6 +26,8 @@ const splitSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+splitSchema.index({ name: 'text', description: 'text' });
+
 const Split = mongoose.model('Split', splitSchema);
 
 export default Split;

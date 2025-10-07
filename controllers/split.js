@@ -14,8 +14,47 @@ export const createSplit = async (req, res) => {
 
 export const getSplits = async (req, res) => {
     try {
-        const splits = await Split.find({ creatorId: req.user.id });
-        res.status(200).json(splits);
+        const { page = 1, limit = 10, search } = req.query;
+        let filter = { creatorId: req.user.id };
+        
+        if (search) {
+            filter.$text = { $search: search };
+        }
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        let sortObj = { createdAt: -1 };
+        
+        if (search) {
+            sortObj = { score: { $meta: 'textScore' }, createdAt: -1 };
+        }
+        
+        const splits = await Split.find(filter)
+            .populate({
+                path: 'days.exercises',
+                populate: [
+                    { path: 'primaryMuscle', select: 'name category' },
+                    { path: 'secondaryMuscles', select: 'name category' }
+                ]
+            })
+            .sort(sortObj)
+            .skip(skip)
+            .limit(parseInt(limit));
+        
+        const totalSplits = await Split.countDocuments(filter);
+        const totalPages = Math.ceil(totalSplits / parseInt(limit));
+        
+        res.status(200).json({
+            splits,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages,
+                totalSplits,
+                hasNext: parseInt(page) < totalPages,
+                hasPrev: parseInt(page) > 1,
+                limit: parseInt(limit)
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching splits', error });
     }
@@ -23,7 +62,14 @@ export const getSplits = async (req, res) => {
 
 export const getSplitById = async (req, res) => {
     try {
-        const split = await Split.findById(req.params.id);
+        const split = await Split.findById(req.params.id)
+            .populate({
+                path: 'days.exercises',
+                populate: [
+                    { path: 'primaryMuscle', select: 'name category' },
+                    { path: 'secondaryMuscles', select: 'name category' }
+                ]
+            });
 
         if (!split) {
             return res.status(404).json({ message: 'Split not found' });
@@ -40,15 +86,15 @@ export const updateSplit = async (req, res) => {
         const { name, description, days } = req.body;
         const split = await Split.findByIdAndUpdate(
             req.params.id,
-            { 
-                name, description, 
-                days: [{ 
-                    dayName: days.dayName, 
-                    exercises: days.exercises 
-                }] 
-            },
+            { name, description, days },
             { new: true }
-        );
+        ).populate({
+            path: 'days.exercises',
+            populate: [
+                { path: 'primaryMuscle', select: 'name category' },
+                { path: 'secondaryMuscles', select: 'name category' }
+            ]
+        });
 
         if (!split) {
             return res.status(404).json({ message: 'Split not found' });
