@@ -1,5 +1,4 @@
 import User from '../models/user.js';
-import Muscle from '../models/muscle.js';
 import Exercise from '../models/exercise.js';
 
 export const getAllUsers = async (req, res) => {
@@ -56,93 +55,17 @@ export const updateUserRole = async (req, res) => {
     }
 };
 
-export const getAllMuscles = async (req, res) => {
-    try {
-        const muscles = await Muscle.find();
-        res.status(200).json(muscles);
-    } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
-    }
-};
-
-export const getMuscleById = async (req, res) => {
-    try {
-        const muscle = await Muscle.findById(req.params.id);
-
-        if (muscle) {
-            res.status(200).json(muscle);
-        } else {
-            res.status(404).json({ message: 'Muscle not found.' });
-        }
-    } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
-    }
-};
-
-export const createMuscle = async (req, res) => {
-    try {
-        const { name, category, muscleGroup, description } = req.body;
-
-        const newMuscle = new Muscle({
-            name,
-            category,
-            muscleGroup,
-            description
-        });
-
-        await newMuscle.save();
-        res.status(201).json({ message: 'Muscle created successfully.', muscle: newMuscle });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
-    }
-};
-
-export const updateMuscle = async (req, res) => {
-    try {
-        const { name, category, muscleGroup, description } = req.body;
-        const muscle = await Muscle.findById(req.params.id);
-
-        if (muscle) {
-            muscle.name = name;
-            muscle.category = category;
-            muscle.muscleGroup = muscleGroup;
-            muscle.description = description;
-
-            await muscle.save();
-            res.status(200).json({ message: 'Muscle updated successfully.', muscle });
-        } else {
-            res.status(404).json({ message: 'Muscle not found.' });
-        }
-    } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
-    }
-};
-
-export const deleteMuscle = async (req, res) => {
-    try {
-        const muscle = await Muscle.findByIdAndDelete(req.params.id);
-
-        if (muscle) {
-            res.status(200).json({ message: 'Muscle deleted successfully.' });
-        } else {
-            res.status(404).json({ message: 'Muscle not found.' });
-        }
-    } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
-    }
-};
-
 export const createExercise = async (req, res) => {
     try {
-        const { name, description, primaryMuscle } = req.body;
-        const { secondaryMuscles } = req.body || [];
-        const { videoUrl } = req.body || '';
+        const { name, description, muscleGroup, videoUrl } = req.body;
+        const userId = req.user._id;
+
         const newExercise = new Exercise({
             name,
             description,
-            primaryMuscle,
-            secondaryMuscles,
-            videoUrl
+            muscleGroup,
+            videoUrl,
+            createdBy: userId
         });
         await newExercise.save();
         res.status(201).json({ message: 'Exercise created successfully.', exercise: newExercise });
@@ -173,8 +96,7 @@ export const getAllExercises = async (req, res) => {
         const sortOrder = sort === 'name' ? { name: 1 } : { name: -1 };
 
         const exercises = await Exercise.find(filter)
-            .populate('primaryMuscle')
-            .populate('secondaryMuscles')
+            .populate('muscleGroup')
             .sort(sortOrder);
 
         res.status(200).json(exercises);
@@ -186,8 +108,7 @@ export const getAllExercises = async (req, res) => {
 export const getExerciseById = async (req, res) => {
     try {
         const exercise = await Exercise.findById(req.params.id)
-            .populate('primaryMuscle')
-            .populate('secondaryMuscles');
+            .populate('muscleGroup');
 
         if (exercise) {
             res.status(200).json(exercise);
@@ -201,16 +122,14 @@ export const getExerciseById = async (req, res) => {
 
 export const updateExercise = async (req, res) => {
     try {
-        const { name, description, primaryMuscle } = req.body;
-        const { secondaryMuscles } = req.body || [];
+        const { name, description, muscleGroup } = req.body;
         const { videoUrl } = req.body || '';
         const exercise = await Exercise.findById(req.params.id);
 
         if (exercise) {
             exercise.name = name;
             exercise.description = description;
-            exercise.primaryMuscle = primaryMuscle;
-            exercise.secondaryMuscles = secondaryMuscles;
+            exercise.muscleGroup = muscleGroup;
             exercise.videoUrl = videoUrl;
 
             await exercise.save();

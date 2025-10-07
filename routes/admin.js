@@ -5,12 +5,7 @@ import {
     getAllUsers, 
     getUserById, 
     deleteUser, 
-    updateUserRole, 
-    getAllMuscles, 
-    getMuscleById, 
-    updateMuscle, 
-    deleteMuscle,
-    createMuscle,
+    updateUserRole,
     getAllExercises,
     getExerciseById,
     updateExercise,
@@ -27,16 +22,6 @@ router.get('/users/:id', isAuth, isAdmin, getUserById);
 router.delete('/users/:id', isAuth, isAdmin, deleteUser);
 
 router.patch('/users/:id', isAuth, isAdmin, updateUserRole);
-
-router.get('/muscles', isAuth, isAdmin, getAllMuscles);
-
-router.get('/muscles/:id', isAuth, isAdmin, getMuscleById);
-
-router.put('/muscles/:id', isAuth, isAdmin, updateMuscle);
-
-router.post('/muscles', isAuth, isAdmin, createMuscle);
-
-router.delete('/muscles/:id', isAuth, isAdmin, deleteMuscle);
 
 router.get('/exercises', isAuth, isAdmin, getAllExercises);
 

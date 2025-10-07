@@ -4,7 +4,6 @@ import passport, { configurePassport } from './middleware/googleAuth.js';
 import connectDB from './config/mongodb.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
-import splitRoutes from './routes/split.js';
 import helmet from 'helmet';
 import cors from 'cors';
 
@@ -22,7 +21,6 @@ app.use(passport.initialize());
 connectDB();
 
 app.use('/api/auth', authRoutes);
-app.use('/api/split', splitRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.listen(process.env.PORT || 3000, () => {

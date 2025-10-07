@@ -4,26 +4,26 @@ const exerciseSchema = new mongoose.Schema({
     name: { 
         type: String, 
         required: true, 
-        unique: true 
+        unique: true,
+        trim: true
     },
     description: {
-        type: String
+        type: String,
+        trim: true
     },
-    primaryMuscle: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Muscle',
+    muscleGroup: {
+        type: String,
+        enum: ['chest', 'back', 'shoulders', 'arms', 'core', 'legs', 'neck'],
         required: true
     },
-    secondaryMuscles: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Muscle'
-        }
-    ],
     videoUrl: {
         type: String
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
-});
+}, { timestamps: true });
 
 exerciseSchema.index({ name: 'text', description: 'text' });
 
