@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import ExercisePR from './exercisePRs.js';
+import ExercisePR from './exercisePR.js';
 
 const workoutSessionSchema = new mongoose.Schema({
     workoutData: {
