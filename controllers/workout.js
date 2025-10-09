@@ -2,14 +2,18 @@ import Workout from '../models/workout.js';
 
 export const createWorkout = async (req, res) => {
     try {
-        const {title, notes='', exercises=[]} = req.body;
-
+        const {title, notes, exercises=[]} = req.body;
+        const userId = req.user.id;
         const workout = new Workout({
             title,
             notes,
+            createdBy: userId,
             exercises
         });
+
         await workout.save();
+
+        res.status(201).json(workout);
 
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -30,7 +34,12 @@ export const getWorkouts = async (req, res) => {
 export const getWorkoutById = async (req, res) => {
     try {
         const { id } = req.params;
-        const workout = await Workout.findOne({ _id: id, isActive: true }).populate('exercises.exerciseId').exec();
+        const workout = await Workout.findOne({ _id: id, isActive: true })
+            .populate({
+                path: 'exercises.exerciseId',
+                select: 'name description videoUrl'
+            });
+
         if (!workout) {
             return res.status(404).json({ message: 'Workout not found' });
         }
@@ -65,7 +74,7 @@ export const updateWorkout = async (req, res) => {
 export const deleteWorkout = async (req, res) => {
     try {
         const { id } = req.params;
-        const workout = await Workout.findByIdAndUpdate(id, { isActive: false }, { new: true }).exec();
+        const workout = await Workout.findByIdAndDelete(id, { new: true });
         if (!workout) {
             return res.status(404).json({ message: 'Workout not found' });
         }

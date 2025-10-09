@@ -6,7 +6,7 @@ import {
     getWorkoutById,
     updateWorkout, 
     deleteWorkout 
-} from '../controllers/workoutController.js';
+} from '../controllers/workout.js';
 
 const router = express.Router();
 
@@ -19,3 +19,5 @@ router.get('/:id', isAuth, getWorkoutById);
 router.put('/:id', isAuth, updateWorkout);
 
 router.delete('/:id', isAuth, deleteWorkout);
+
+export default router;

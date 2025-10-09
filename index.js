@@ -4,6 +4,8 @@ import passport, { configurePassport } from './middleware/googleAuth.js';
 import connectDB from './config/mongodb.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import workoutSessionRoutes from './routes/workoutSession.js';
+import workoutRoutes from './routes/workout.js';
 import helmet from 'helmet';
 import cors from 'cors';
 
@@ -22,6 +24,8 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/workout', workoutRoutes);
+app.use('/api/workout-session', workoutSessionRoutes);
 
 
 app.listen(process.env.PORT || 3000, () => {

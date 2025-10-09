@@ -8,7 +8,8 @@ const workoutSchema = new mongoose.Schema({
     },
     notes: {
         type: String,
-        trim: true
+        trim: true,
+        default: ''
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -23,7 +24,8 @@ const workoutSchema = new mongoose.Schema({
         },
         notes: {
             type: String,
-            trim: true
+            trim: true,
+            default: ''
         },
         sets: [
             {
@@ -57,10 +59,6 @@ const workoutSchema = new mongoose.Schema({
             }
         ]
     }],
-    session: {
-        type: Boolean,
-        default: false
-    },
     isActive: {
         type: Boolean,
         default: true
