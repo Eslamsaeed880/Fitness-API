@@ -1,5 +1,7 @@
 import WorkoutSession from '../models/workoutSession.js';
 import Workout from '../models/workout.js';
+import ExercisePR from '../models/exercisePRs.js';
+import { updateExercisePRs } from '../middleware/updatePRs.js';
 
 export const createWorkoutSession = async (req, res) => {
     try {
@@ -32,7 +34,7 @@ export const getWorkoutSessions = async (req, res) => {
     try {
         const userId = req.user.id;
         const sessions = await WorkoutSession.find({ createdBy: userId })
-            .select('title createdAt workoutData.title workoutData.notes sessionStatus')
+            .select('workoutData.title workoutData.notes sessionStatus startTime endTime duration')
             .sort({ createdAt: -1 });
 
         res.status(200).json(sessions);
@@ -45,10 +47,7 @@ export const getWorkoutSessionById = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
-        const session = await WorkoutSession
-            .findOne({ _id: id, createdBy: userId })
-            .populate('createdBy', 'name')
-            .populate('workoutData.exercises.exerciseId', 'name description videoUrl');
+        const session = await WorkoutSession.findOne({ _id: id, createdBy: userId });
 
         if (!session) {
             return res.status(404).json({ message: 'Session not found.' });
@@ -64,26 +63,67 @@ export const updateWorkoutSession = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
-        const updateData = req.body;
-        
-        const session = await WorkoutSession.findOneAndUpdate(
-            { _id: id, createdBy: userId },
-            updateData,
-            { new: true }
-        );
+        const { workoutData } = req.body;
+        const session = await WorkoutSession.findOne({
+            _id: id,
+            createdBy: userId
+        });
 
         if (!session) {
             return res.status(404).json({ message: 'Session not found.' });
         }
 
-        if (updateData.sessionStatus === 'completed' || updateData.sessionStatus === 'cancelled') {
-            session.endTime = new Date();
-            session.duration = Math.round((session.endTime - session.startTime) / (1000 * 60)); 
-            await session.save();
-        }
+        session.workoutData = workoutData;
+
+        await session.save();
 
         res.status(200).json({ session });
     } catch (err) {
         res.status(500).json({ message: 'Server error.', error: err.message });
     }
 };
+
+export const updateStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const { sessionStatus } = req.body;
+
+        const session = await WorkoutSession.findOne({
+            _id: id,
+            createdBy: userId
+        });
+
+        if (!session) {
+            return res.status(404).json({ message: 'Session not found.' });
+        }
+
+        session.sessionStatus = sessionStatus;
+
+        if (sessionStatus === 'completed' && session.endTime == null) {
+            session.endTime = new Date();
+            session.duration = Math.round((session.endTime - session.startTime) / (1000 * 60));
+            
+            await updateExercisePRs(userId, session.workoutData);
+        }
+
+        await session.save();
+
+        res.status(200).json({ session });
+
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+}
+
+export const getPersonalRecords = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const personalRecords = await ExercisePR.find({ userId: userId })
+            .populate('exerciseId', 'name description muscleGroup');
+
+        res.status(200).json(personalRecords);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+}

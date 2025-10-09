@@ -3,7 +3,9 @@ import {
     createWorkoutSession, 
     getWorkoutSessions, 
     getWorkoutSessionById,
-    updateWorkoutSession
+    updateWorkoutSession,
+    updateStatus,
+    getPersonalRecords
 } from '../controllers/workoutSession.js';
 import isAuth from '../middleware/isAuth.js';
 
@@ -13,8 +15,12 @@ router.post('/', isAuth, createWorkoutSession);
 
 router.get('/', isAuth, getWorkoutSessions);
 
+router.get('/personal-records', isAuth, getPersonalRecords);
+
 router.get('/:id', isAuth, getWorkoutSessionById);
 
 router.put('/:id', isAuth, updateWorkoutSession);
+
+router.patch('/:id', isAuth, updateStatus);
 
 export default router;

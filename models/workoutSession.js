@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import ExercisePR from './exercisePRs.js';
 
 const workoutSessionSchema = new mongoose.Schema({
     workoutData: {
@@ -49,9 +50,6 @@ const workoutSessionSchema = new mongoose.Schema({
                 isCompleted: {
                     type: Boolean,
                     default: false
-                },
-                completedAt: {
-                    type: Date
                 }
             }]
         }]
@@ -82,13 +80,6 @@ const workoutSessionSchema = new mongoose.Schema({
         ref: 'Workout'
     }
 }, { timestamps: true });
-
-workoutSessionSchema.pre('save', function(next) {
-    if (this.endTime && this.startTime) {
-        this.duration = Math.round((this.endTime - this.startTime) / (1000 * 60)); 
-    }
-    next();
-});
 
 const WorkoutSession = mongoose.model('WorkoutSession', workoutSessionSchema);
 
