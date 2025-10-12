@@ -1,5 +1,6 @@
 import User from '../models/user.js';
 import Exercise from '../models/exercise.js';
+import Post from '../models/post.js';
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -151,6 +152,38 @@ export const deleteExercise = async (req, res) => {
         } else {
             res.status(404).json({ message: 'Exercise not found.' });
         }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const getPostsByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const posts = await Post.find({ userId }).populate('userId', 'username email').exec();
+        res.status(200).json(posts);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+}
+
+export const getPosts = async (req, res) => {
+    try {
+        const posts = await Post.find().populate('userId', 'username email').exec();
+        res.status(200).json(posts);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+};
+
+export const deletePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const post = await Post.findByIdAndDelete(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+        res.status(200).json({ message: 'Post deleted successfully.' });
     } catch (err) {
         res.status(500).json({ message: 'Server error.', error: err.message });
     }
