@@ -27,6 +27,25 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/workout', workoutRoutes);
 app.use('/api/workout-session', workoutSessionRoutes);
 
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+app.use((err, req, res, next) => {
+    const status = err.status || 500;
+    const message = err.message || 'Internal Server Error';
+
+    const payload = {
+        error: {
+            message,
+            status,
+        },
+    };
+
+    res.status(status).json(payload);
+});
 
 app.listen(process.env.PORT || 3000, () => {
     console.log("Server is running on port " + (process.env.PORT || 3000));

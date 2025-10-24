@@ -6,7 +6,7 @@ import { confirmResetPasswordValidator, loginValidation, resetPasswordValidator,
 
 const router = express.Router();
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.post('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get(
   '/google/callback',

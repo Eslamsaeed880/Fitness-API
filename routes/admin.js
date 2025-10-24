@@ -10,7 +10,11 @@ import {
     getExerciseById,
     updateExercise,
     deleteExercise,
-    createExercise
+    createExercise,
+    getPosts,
+    getPostsByUser,
+    deletePost
+
 } from '../controllers/admin.js';
 
 const router = express.Router();
@@ -32,5 +36,11 @@ router.put('/exercises/:id', isAuth, isAdmin, updateExercise);
 router.post('/exercises', isAuth, isAdmin, createExercise);
 
 router.delete('/exercises/:id', isAuth, isAdmin, deleteExercise);
+
+router.get('/posts', isAuth, isAdmin, getPosts);
+
+router.get('/posts/user/:userId', isAuth, isAdmin, getPostsByUser);
+
+router.delete('/posts/:id', isAuth, isAdmin, deletePost);
 
 export default router;
