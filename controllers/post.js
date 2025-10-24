@@ -22,13 +22,36 @@ export const createPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const posts = await Post.find().populate('userId', 'username email').exec();
+        const posts = await Post.find().populate('userId', 'name').exec();
         res.status(200).json(posts);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
         console.error('Error fetching posts:', error);
     }
 };
+
+export const updatePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, content } = req.body;
+        const userId = req.user.id;
+
+        const post = await Post.findOneAndUpdate(
+            { _id: id, userId },
+            { title, content },
+            { new: true }
+        );
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found or unauthorized' });
+        }
+
+        res.status(200).json(post);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Error updating post:', error);
+    }
+}
 
 export const getPostById = async (req, res) => {
     try {
