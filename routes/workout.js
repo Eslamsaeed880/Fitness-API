@@ -1,5 +1,12 @@
 import express from 'express';
 import isAuth from '../middleware/isAuth.js';
+import checkError from '../middleware/checkError.js';
+import {
+    createWorkoutValidation,
+    updateWorkoutValidation,
+    getWorkoutByIdValidation,
+    deleteWorkoutValidation
+} from '../validation/workoutValidation.js';
 import { 
     getWorkouts, 
     createWorkout, 
@@ -10,14 +17,14 @@ import {
 
 const router = express.Router();
 
-router.get('/', isAuth, getWorkouts);
+router.get('/', isAuth, getWorkoutsValidation, checkError, getWorkouts);
 
-router.post('/', isAuth, createWorkout);
+router.post('/', isAuth, createWorkoutValidation, checkError, createWorkout);
 
-router.get('/:id', isAuth, getWorkoutById);
+router.get('/:id', isAuth, getWorkoutByIdValidation, checkError, getWorkoutById);
 
-router.put('/:id', isAuth, updateWorkout);
+router.put('/:id', isAuth, updateWorkoutValidation, checkError, updateWorkout);
 
-router.delete('/:id', isAuth, deleteWorkout);
+router.delete('/:id', isAuth, deleteWorkoutValidation, checkError, deleteWorkout);
 
 export default router;
