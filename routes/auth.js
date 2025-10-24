@@ -3,6 +3,7 @@ import { postLogin, postSignup, resetPassword, confirmResetPassword } from '../c
 import passport from '../middleware/googleAuth.js';
 import jwt from 'jsonwebtoken'; 
 import { confirmResetPasswordValidator, loginValidation, resetPasswordValidator, signupValidation } from '../validation/authValidation.js';
+import checkError from '../middleware/checkError.js';
 import limiter from '../middleware/rateLimit.js';
 
 const router = express.Router();
@@ -28,12 +29,12 @@ router.get(
   }
 );
 
-router.post('/login', loginValidation, postLogin);
+router.post('/login', loginValidation, checkError, postLogin);
 
-router.post('/signup', signupValidation, postSignup);
+router.post('/signup', signupValidation, checkError, postSignup);
 
-router.post('/reset-password', resetPasswordValidator, resetPassword);
+router.post('/reset-password', resetPasswordValidator, checkError, resetPassword);
 
-router.post('/confirm-reset-password/', confirmResetPasswordValidator, confirmResetPassword);
+router.post('/confirm-reset-password/', confirmResetPasswordValidator, checkError, confirmResetPassword);
 
 export default router;

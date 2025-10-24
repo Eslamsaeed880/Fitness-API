@@ -15,20 +15,9 @@ const transporter = nodemailer.createTransport(sendgridTransport({
 
 export const postLogin = async (req, res, next) => {
     try {
-        const errors = validationResult(req);
-        if(!errors.isEmpty()) {
-            return res.status(400).json({message: errors.array()});
-        }
-        
         const { email, password } = req.body;
         const userExists = await User.findOne({email});
-        if (!userExists) {
-            return res.status(401).json({message: "Invalid email or password."});
-        }
         const isMatch = await bcrypt.compare(password, userExists.password);
-        if (!isMatch) {
-            return res.status(401).json({message: "Invalid email or password."});
-        }
 
         const token = jwt.sign(
             {
@@ -49,18 +38,8 @@ export const postLogin = async (req, res, next) => {
 
 export const postSignup = async (req, res, next) => {
     try {
-        const errors = validationResult(req);
-        
-        if(!errors.isEmpty()) {
-            return res.status(400).json({message: errors.array()});
-        }
-        
         const { firstName, lastName, email, password } = req.body;
         const userExists = await User.findOne({ email: email });
-        
-        if (userExists) {
-            return res.status(409).json({ message: "User already exists." });
-        }
         
         const name = firstName.trim() + ' ' + lastName.trim();
         const saltRounds = parseInt(process.env.SALT_ROUNDS);
@@ -91,11 +70,6 @@ export const postSignup = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
     try {
-        const errors = validationResult(req);
-        if(!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
-        }
-
         const { email } = req.body;
         const user = await User.findOne({ email });
 
@@ -166,11 +140,6 @@ export const resetPassword = async (req, res, next) => {
 
 export const confirmResetPassword = async (req, res, next) => {
     try {
-        const errors = validationResult(req);
-        if(!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
-        }
-
         const { password } = req.body;
         const { token } = req.query;
 

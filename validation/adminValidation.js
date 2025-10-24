@@ -33,3 +33,21 @@ export const getUserByIdValidation = [
 export const getExerciseByIdValidation = [
     param('id').isMongoId()
 ];
+
+export const getPostsByUserValidation = [
+    param('userId')
+        .isMongoId()
+        .custom((value, { req }) => {
+            return getPostsByUser(req, value);
+        })
+        .withMessage('Invalid user ID')
+];
+
+export const deletePostValidation = [
+    param('id')
+        .isMongoId()
+        .custom((value, { req }) => {
+            return getPostsByUser(req, value);
+        })
+        .withMessage('Invalid post ID')
+];
