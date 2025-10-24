@@ -4,6 +4,7 @@ import passport, { configurePassport } from './middleware/googleAuth.js';
 import connectDB from './config/mongodb.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import followingRoutes from './routes/follow.js';
 import workoutSessionRoutes from './routes/workoutSession.js';
 import postRoutes from './routes/post.js';
 import workoutRoutes from './routes/workout.js';
@@ -30,6 +31,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/workout', workoutRoutes);
 app.use('/api/workout-session', workoutSessionRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/following-details', followingRoutes);
 
 app.use((req, res, next) => {
     const err = new Error('Not Found');
