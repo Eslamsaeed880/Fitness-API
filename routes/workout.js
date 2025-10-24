@@ -17,7 +17,7 @@ import {
 
 const router = express.Router();
 
-router.get('/', isAuth, getWorkoutsValidation, checkError, getWorkouts);
+router.get('/', isAuth, getWorkouts);
 
 router.post('/', isAuth, createWorkoutValidation, checkError, createWorkout);
 
