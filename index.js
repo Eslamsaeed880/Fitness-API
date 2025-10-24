@@ -9,6 +9,7 @@ import postRoutes from './routes/post.js';
 import workoutRoutes from './routes/workout.js';
 import helmet from 'helmet';
 import cors from 'cors';
+import limiter from './middleware/rateLimit.js';
 
 const app = express();
 
@@ -16,6 +17,7 @@ configurePassport();
 
 app.use(helmet());
 app.use(cors());
+app.use(limiter(15, 100));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));

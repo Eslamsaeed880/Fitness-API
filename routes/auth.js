@@ -3,8 +3,11 @@ import { postLogin, postSignup, resetPassword, confirmResetPassword } from '../c
 import passport from '../middleware/googleAuth.js';
 import jwt from 'jsonwebtoken'; 
 import { confirmResetPasswordValidator, loginValidation, resetPasswordValidator, signupValidation } from '../validation/authValidation.js';
+import limiter from '../middleware/rateLimit.js';
 
 const router = express.Router();
+
+router.use(limiter(5, 10));
 
 router.post('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
