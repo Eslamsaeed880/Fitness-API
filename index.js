@@ -11,6 +11,8 @@ import workoutRoutes from './routes/workout.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json' with { type: 'json' };
 
 const app = express();
 
@@ -26,6 +28,7 @@ app.use(passport.initialize());
 
 connectDB();
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/workout', workoutRoutes);
