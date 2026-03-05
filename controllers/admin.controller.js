@@ -1,6 +1,6 @@
-import User from '../models/user.js';
-import Exercise from '../models/exercise.js';
-import Post from '../models/post.js';
+import User from '../models/user.model.js';
+import Exercise from '../models/exercise.model.js';
+import Post from '../models/post.model.js';
 
 export const getAllUsers = async (req, res) => {
     try {

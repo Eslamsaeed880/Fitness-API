@@ -13,7 +13,7 @@ import {
     updateWorkoutSession,
     updateStatus,
     getPersonalRecords
-} from '../controllers/workoutSession.js';
+} from '../controllers/workoutSession.controller.js';
 import isAuth from '../middleware/isAuth.js';
 
 const router = express.Router();

@@ -1,4 +1,4 @@
-import Follow from '../models/follow.js';
+import Follow from '../models/follow.model.js';
 
 export const follow = async (req, res) => {
     try {

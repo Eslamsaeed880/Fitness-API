@@ -1,5 +1,5 @@
 import express from 'express';
-import { postLogin, postSignup, resetPassword, confirmResetPassword } from '../controllers/auth.js';
+import { postLogin, postSignup, resetPassword, confirmResetPassword } from '../controllers/auth.controller.js';
 import passport from '../middleware/googleAuth.js';
 import jwt from 'jsonwebtoken'; 
 import { confirmResetPasswordValidator, loginValidation, resetPasswordValidator, signupValidation } from '../validation/authValidation.js';

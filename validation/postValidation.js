@@ -1,6 +1,6 @@
 import { body, param } from 'express-validator';
-import Post from '../models/post.js';
-import Like from '../models/like.js';
+import Post from '../models/post.model.js';
+import Like from '../models/like.model.js';
 
 export const createPostValidation = [
     body('title')

@@ -1,5 +1,5 @@
 import { body, query } from 'express-validator';
-import User from '../models/user.js';
+import User from '../models/user.model.js';
 import bcrypt from 'bcrypt';
 
 export const loginValidation = [

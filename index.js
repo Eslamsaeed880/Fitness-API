@@ -2,17 +2,17 @@ import 'dotenv/config';
 import express from 'express';
 import passport, { configurePassport } from './middleware/googleAuth.js';
 import connectDB from './config/mongodb.js';
-import authRoutes from './routes/auth.js';
-import adminRoutes from './routes/admin.js';
-import followingRoutes from './routes/follow.js';
-import workoutSessionRoutes from './routes/workoutSession.js';
-import postRoutes from './routes/post.js';
-import workoutRoutes from './routes/workout.js';
+import authRoutes from './routes/auth.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import followingRoutes from './routes/follow.routes.js';
+import workoutSessionRoutes from './routes/workoutSession.routes.js';
+import postRoutes from './routes/post.routes.js';
+import workoutRoutes from './routes/workout.routes.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
 import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger.json' with { type: 'json' };
+import swaggerDocument from './swagger.json' assert { type: 'json' };
 
 const app = express();
 

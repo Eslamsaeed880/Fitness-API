@@ -1,5 +1,5 @@
 import express from 'express';
-import { follow, unfollow, getFollowers, getFollowing } from '../controllers/follow.js';
+import { follow, unfollow, getFollowers, getFollowing } from '../controllers/follow.controller.js';
 import { followValidation, unfollowValidation } from '../validation/followValidation.js';
 import checkError from '../middleware/checkError.js';
 import isAuth from '../middleware/isAuth.js';

@@ -1,6 +1,6 @@
-import WorkoutSession from '../models/workoutSession.js';
-import Workout from '../models/workout.js';
-import ExercisePR from '../models/exercisePR.js';
+import WorkoutSession from '../models/workoutSession.model.js';
+import Workout from '../models/workout.model.js';
+import ExercisePR from '../models/exercisePR.model.js';
 import { updateExercisePRs } from '../middleware/updatePRs.js';
 
 export const createWorkoutSession = async (req, res) => {

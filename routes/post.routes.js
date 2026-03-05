@@ -20,7 +20,7 @@ import {
     unlikePost, 
     commentPost,
     deleteComment
-} from '../controllers/post.js';
+} from '../controllers/post.controller.js';
 import isAuth from '../middleware/isAuth.js';
 const router = express.Router();
 

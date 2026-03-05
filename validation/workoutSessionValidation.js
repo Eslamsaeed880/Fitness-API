@@ -1,5 +1,5 @@
 import { body, param } from 'express-validator';
-import WorkoutSession from '../models/workoutSession.js';
+import WorkoutSession from '../models/workoutSession.model.js';
 
 export const createWorkoutSessionValidation = [
     body('workoutId').isMongoId(),

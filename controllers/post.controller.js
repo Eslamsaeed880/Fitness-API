@@ -1,6 +1,6 @@
-import Post from '../models/post.js';
-import Like from '../models/like.js';
-import Comment from '../models/comment.js';
+import Post from '../models/post.model.js';
+import Like from '../models/like.model.js';
+import Comment from '../models/comment.model.js';
 
 export const createPost = async (req, res) => {
     try {

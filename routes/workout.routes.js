@@ -13,7 +13,7 @@ import {
     getWorkoutById,
     updateWorkout, 
     deleteWorkout 
-} from '../controllers/workout.js';
+} from '../controllers/workout.controller.js';
 
 const router = express.Router();
 

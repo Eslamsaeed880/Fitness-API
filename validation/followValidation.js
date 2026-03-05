@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import Follow from '../models/follow.js';
+import Follow from '../models/follow.model.js';
 
 export const followValidation = [
 	body('followingId')

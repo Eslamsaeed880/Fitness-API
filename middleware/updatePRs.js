@@ -1,4 +1,4 @@
-import ExercisePR from '../models/exercisePR.js';
+import ExercisePR from '../models/exercisePR.model.js';
 
 export const updateExercisePRs = async (userId, workoutData) => {
     try {

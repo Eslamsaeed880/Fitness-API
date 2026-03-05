@@ -27,7 +27,7 @@ import {
     getPostsByUser,
     deletePost
 
-} from '../controllers/admin.js';
+} from '../controllers/admin.controller.js';
 
 const router = express.Router();
 
