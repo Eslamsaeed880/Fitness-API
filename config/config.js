@@ -4,8 +4,8 @@ const config = {
      
     jwtSecretKey: process.env.JWT_SECRET_KEY,
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
-    tokenExpiry: +process.env.ACCESS_TOKEN_EXPIRY,
-    refreshTokenExpiry: +process.env.REFRESH_TOKEN_EXPIRY,
+    tokenExpiry: process.env.ACCESS_TOKEN_EXPIRY || '1h',
+    refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d',
 
     port: process.env.PORT || 3000,
 
