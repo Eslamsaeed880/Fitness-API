@@ -1,18 +1,58 @@
-import mongoose from "mongoose";
-import { Schema } from "mongoose";
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
+import bcrypt from 'bcrypt';
+import config from '../config/config.js';
+import jwt from 'jsonwebtoken';
 
 const userSchema = new Schema({
-    name: {
+    fullName: {
         type: String,
+        required: true
+    },
+    username: {
+        type: String,
+        unique: true,
         required: true
     },
     email: {
         type: String,
+        unique: true,
         required: true
     },
     password: {
         type: String,
         required: true
+    },
+    numberOfFollowers: {
+        type: Number,
+        default: 0
+    },
+    profilePicture: {
+        publicId: String,
+        url: String
+    },
+    coverImage: {
+        publicId: String,
+        url: String
+    },
+    bio: {
+        type: String,
+        maxLength: 300,
+        default: ""
+    },
+    channelTags: {
+        type: [String],
+        default: []
+    },
+    socialLinks: {
+        x: String,
+        instagram: String,
+        facebook: String,
+        website: String
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     },
     phone: {
         type: String,
@@ -27,15 +67,15 @@ const userSchema = new Schema({
     gender: {
         type: String,
         enum: ['male', 'female'],
-        required: false
+        default: null
     },
-    Nationality: {
+    location: {
         type: String,
-        required: false
+        default: ""
     },
     birthDay: {
         type: Date,
-        required: false
+        default: null
     },
     authProvider: {
         type: String,
@@ -46,7 +86,7 @@ const userSchema = new Schema({
     role: {
         type: String,
         required: true,
-        enum: ['user', 'admin'],
+        enum: ['user', 'coach', 'admin'],
         default: 'user'
     },
     resetToken: {
@@ -56,9 +96,35 @@ const userSchema = new Schema({
     resetTokenExpiry: {
         type: Date,
         default: null
-    }
+    },
 }, {minimize: false, timestamps: true});
 
-const user = mongoose.model('User', userSchema);
+userSchema.index({isVerified: 1}); 
+userSchema.index({role: 1}); 
+userSchema.index({createdAt: -1}); 
 
-export default user;
+userSchema.pre('save', async function () {
+    if(!this.isModified('password')) {
+        return ;
+    }
+    this.password = await bcrypt.hash(this.password, config.bcryptSaltRounds);
+})
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+}
+
+userSchema.methods.generateToken = function () {
+    return jwt.sign({ 
+        id: this._id, 
+        role: this.role
+    }, 
+    config.jwtSecretKey, { 
+        expiresIn: config.tokenExpiry 
+    });
+}
+
+
+const User = mongoose.model('User', userSchema);
+
+export default User;
