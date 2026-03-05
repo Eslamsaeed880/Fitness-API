@@ -1,0 +1,37 @@
+
+const config = {
+    mongodbUri: process.env.MONGODB_URI,
+     
+    jwtSecretKey: process.env.JWT_SECRET_KEY,
+    refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
+    tokenExpiry: +process.env.ACCESS_TOKEN_EXPIRY,
+    refreshTokenExpiry: +process.env.REFRESH_TOKEN_EXPIRY,
+
+    port: process.env.PORT || 3000,
+
+    cloudinary: {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        apiSecret: process.env.CLOUDINARY_API_SECRET,
+    },
+    mail: {
+        password: process.env.NODEMAILER_PASSWORD,
+        sender: process.env.MAIL_SENDER
+    },
+
+    nodeEnv: process.env.NODE_ENV,
+
+    bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS),
+
+    corsOrigin: process.env.CORS_ORIGIN,
+
+    googleClientId: process.env.GOOGLE_CLIENT_ID,
+    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    googleCallbackURL: process.env.GOOGLE_CALLBACK_URL,
+
+    redisUrl: process.env.REDIS_URL,
+    videoCacheTTL: Number(process.env.VIDEO_CACHE_TTL) || 60,
+    apiCacheTTL: Number(process.env.API_CACHE_TTL) || 60,
+}
+
+export default config;
