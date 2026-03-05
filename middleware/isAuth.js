@@ -15,7 +15,18 @@ const isAuth = async (req, res, next) => {
     } catch (err) {
         return res.status(500).json({ message: 'Token verification failed.', error: err.message });
     }
-    req.user = { id: decodedToken.userId };
+
+    const userId = decodedToken.id || decodedToken.userId;
+    if (!userId) {
+        return res.status(401).json({ message: 'Invalid token payload.' });
+    }
+
+    req.user = {
+        id: userId,
+        _id: userId,
+        role: decodedToken.role,
+    };
+
     next();
 };
 
