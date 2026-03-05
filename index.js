@@ -29,12 +29,12 @@ app.use(passport.initialize());
 connectDB();
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/workout', workoutRoutes);
-app.use('/api/workout-session', workoutSessionRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/following-details', followingRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/workout', workoutRoutes);
+app.use('/api/v1/workout-session', workoutSessionRoutes);
+app.use('/api/v1/posts', postRoutes);
+app.use('/api/v1/following-details', followingRoutes);
 
 app.use((req, res, next) => {
     const err = new Error('Not Found');
