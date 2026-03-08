@@ -26,7 +26,7 @@ router.post("/login", login);
 
 router.get("/google", getGoogleAuthUrl);
 
-router.get("/google/callback", passport.authenticate('google', { session: false, failureRedirect: '/login' }), googleLoginCallback);
+router.get("/google/callback", passport.authenticate('google', { session: false }), googleLoginCallback);
 
 router.post("/password-reset", resetPassword);
 
