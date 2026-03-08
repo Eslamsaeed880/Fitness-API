@@ -51,7 +51,7 @@ router.delete('/exercises/:id', isAuth, isAdmin, deleteExerciseValidation, check
 
 router.get('/posts', isAuth, isAdmin, getPosts);
 
-router.get('/posts/user/:userId', isAuth, isAdmin, getPostsByUserValidation, checkError, getPostsByUser);
+router.get('/posts/user/:userId', isAuth, isAdmin, getPostsByUser);
 
 router.delete('/posts/:id', isAuth, isAdmin, deletePostValidation, checkError, deletePost);
 
