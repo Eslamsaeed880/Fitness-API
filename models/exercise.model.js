@@ -11,13 +11,40 @@ const exerciseSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    muscleGroup: {
+    primaryMuscle: {
         type: String,
-        enum: ['chest', 'back', 'shoulders', 'arms', 'core', 'legs', 'neck'],
-        required: true
+        required: true,
+        trim: true
     },
-    videoUrl: {
-        type: String
+    secondaryMuscles: {
+        type: String,
+        trim: true
+    },
+    equipment: {
+        type: String,
+        trim: true,
+        ref: 'Equipment'
+    },
+    movementType: {
+        type: String,
+        enum: ["compound", "isolation"],
+        required: true,
+        trim: true
+    },
+    media: {
+        mediaType: {
+            type: String,
+            enum: ['image', 'video'],
+            required: true
+        },
+        publicId: {
+            type: String,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        },
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
