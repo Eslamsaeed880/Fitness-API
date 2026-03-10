@@ -140,6 +140,23 @@ export const getAllMuscles = async (req, res) => {
     }
 };
 
+// @Desc: Get muscle by ID
+// @Route: /api/v1/admin/muscles/:id
+// @Access: Admin only
+export const getMuscleById = async (req, res) => {
+    try {
+        const muscle = await Muscle.findById(req.params.id);
+
+        if (muscle) {
+            res.status(200).json(new APIResponse(200, muscle, 'Muscle retrieved successfully.'));
+        }
+
+        return res.status(400).json(new APIError(400, 'Invalid Muscle ID'));
+    } catch (err) {
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
 
 
 export const createExercise = async (req, res) => {

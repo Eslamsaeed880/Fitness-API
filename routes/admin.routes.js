@@ -14,7 +14,8 @@ import {
     createMuscle,
     getPosts,
     getPostsByUser,
-    deletePost
+    deletePost,
+    getMuscleById
 
 } from '../controllers/admin.controller.js';
 
@@ -30,7 +31,7 @@ router.patch('/users/:id', isAdmin, updateUserRole);
 
 router.get('/muscles', isAdmin, getAllMuscles);
 
-router.get('/muscles/:id', isAdmin);
+router.get('/muscles/:id', isAdmin, getMuscleById);
 
 router.post('/muscles', isAdmin, createMuscle);
 
