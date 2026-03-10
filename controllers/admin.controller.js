@@ -158,6 +158,47 @@ export const getMuscleById = async (req, res) => {
     }
 }
 
+export const updateMuscle = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+
+        const muscle = await Muscle.findById(req.params.id);
+
+        if (muscle) {
+            muscle.name = name || muscle.name;
+            muscle.description = description || muscle.description;
+
+            await muscle.save();
+
+            res.status(200).json(new APIResponse(200, { muscle }, 'Muscle updated successfully.'));
+        } else {
+            res.status(404).json(new APIError(404, 'Invalid Muscle ID'));
+        }
+    } catch (err) {
+        if(err.code === 11000) {
+            return res.status(400).json(new APIError(400, 'Muscle with this name already exists.'));
+        }
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
+
+export const deleteMuscle = async (req, res) => {
+    try {
+        const muscle = await Muscle.findByIdAndDelete(req.params.id);
+
+        if (!muscle) {
+            return res.status(404).json(new APIError(404, 'Muscle not found.'));
+        }
+        
+        return res.status(200).json(new APIResponse(200, {}, 'Muscle deleted successfully.'));
+
+    } catch (err) {
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
+
 
 export const createExercise = async (req, res) => {
     try {

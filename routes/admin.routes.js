@@ -12,11 +12,12 @@ import {
     createExercise,
     getAllMuscles,
     createMuscle,
+    getMuscleById,
+    updateMuscle,
+    deleteMuscle,
     getPosts,
     getPostsByUser,
     deletePost,
-    getMuscleById
-
 } from '../controllers/admin.controller.js';
 
 const router = express.Router();
@@ -35,9 +36,9 @@ router.get('/muscles/:id', isAdmin, getMuscleById);
 
 router.post('/muscles', isAdmin, createMuscle);
 
-router.put('/muscles/:id', isAdmin);
+router.put('/muscles/:id', isAdmin, updateMuscle);
 
-router.delete('/muscles/:id', isAdmin);
+router.delete('/muscles/:id', isAdmin, deleteMuscle);
 
 router.get('/equipments', isAdmin);
 
