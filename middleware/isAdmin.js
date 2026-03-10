@@ -1,18 +1,21 @@
-import User from '../models/user.model.js';
+import isAuth from "./isAuth.js";
+import APIError from "../utils/APIError.js";
 
-const isAdmin = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        const user = await User.findById(userId);
+const isAdmin = [
+    isAuth,
+    (req, res, next) => {
+        try {
+            if (req.user.role !== 'admin') {
+                console.log(req.user);
+                return next(new APIError(403, 'Access denied'));
+            }
 
-        if (user && user.role === 'admin') {
-            next();
-        } else {
-            res.status(403).json({ message: 'Access denied. Admins only.' });
+            return next();
+        } catch (error) {
+            console.log(error);
+            return next(new APIError(500, 'Server error'));
         }
-    } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
     }
-};
+];
 
 export default isAdmin;
