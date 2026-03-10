@@ -23,7 +23,6 @@ const exerciseSchema = new mongoose.Schema({
     equipment: {
         type: String,
         trim: true,
-        ref: 'Equipment'
     },
     movementType: {
         type: String,
@@ -52,7 +51,7 @@ const exerciseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-exerciseSchema.index({ name: 'text', description: 'text' });
+exerciseSchema.index({ name: 1, equipment: 1 }, { unique: true });
 
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 
