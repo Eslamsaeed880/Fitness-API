@@ -1,67 +1,30 @@
 import mongoose from 'mongoose';
 
 const workoutSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    notes: {
-        type: String,
-        trim: true,
-        default: ''
-    },
-    createdBy: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    exercises: [{
-        exerciseId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Exercise',
-            required: true
-        },
-        notes: {
-            type: String,
-            trim: true,
-            default: ''
-        },
-        sets: [
-            {
-                setType: {
-                    type: String,
-                    enum: ['warmup', 'working', 'drop', 'failure'],
-                    default: 'working'
-                },
-                setNumber: {
-                    type: Number,
-                    default: 1,
-                    required: true
-                },
-                weightKg: {
-                    type: Number,
-                    min: 0,
-                    required: true
-                },
-                reps: {
-                    type: Number,
-                    min: 0,
-                    default: 10,
-                    required: true
-                },
-                restSeconds: {
-                    type: Number,
-                    min: 0,
-                    default: 120,
-                    required: true
-                }
-            }
-        ]
-    }],
-    isActive: {
-        type: Boolean,
-        default: true
+    templateId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'WorkoutTemplate'
+    },
+    startTime: {
+        type: Date,
+        default: Date.now
+    },
+    endTime: {
+        type: Date,
+        default: null
+    },
+    duration: {
+        type: Number,
+        default: 0
+    },
+    notes: {
+        type: String,
+        trim: true
     }
 }, { timestamps: true });
 
