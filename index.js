@@ -5,7 +5,6 @@ import connectDB from './config/mongodb.js';
 import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import followingRoutes from './routes/follow.routes.js';
-import workoutSessionRoutes from './routes/workoutSession.routes.js';
 import postRoutes from './routes/post.routes.js';
 import workoutRoutes from './routes/workout.routes.js';
 import helmet from 'helmet';
@@ -31,10 +30,10 @@ connectDB();
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
-app.use('/api/v1/workout', workoutRoutes);
-app.use('/api/v1/workout-session', workoutSessionRoutes);
-app.use('/api/v1/posts', postRoutes);
-app.use('/api/v1/following-details', followingRoutes);
+// app.use('/api/v1/workout', workoutRoutes);
+// app.use('/api/v1/workout-session', workoutSessionRoutes);
+// app.use('/api/v1/posts', postRoutes);
+// app.use('/api/v1/following-details', followingRoutes);
 
 app.use((req, res, next) => {
     const err = new Error('Not Found');

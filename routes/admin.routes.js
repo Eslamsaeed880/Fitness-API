@@ -1,18 +1,5 @@
-import isAuth from '../middleware/isAuth.js';
 import isAdmin from '../middleware/isAdmin.js';
-import checkError from '../middleware/checkError.js';
 import express from 'express';
-import {
-    createExerciseValidation,
-    updateExerciseValidation,
-    updateUserRoleValidation,
-    deleteUserValidation,
-    deleteExerciseValidation,
-    getUserByIdValidation,
-    getExerciseByIdValidation,
-    getPostsByUserValidation,
-    deletePostValidation
-} from '../validation/adminValidation.js';
 import { 
     getAllUsers, 
     getUserById, 
@@ -31,28 +18,48 @@ import {
 
 const router = express.Router();
 
-router.get('/users', isAuth, isAdmin, getAllUsers);
+router.get('/users', isAdmin, getAllUsers);
 
-router.get('/users/:id', isAuth, isAdmin, getUserByIdValidation, checkError, getUserById);
+router.get('/users/:id', isAdmin, getUserById);
 
-router.delete('/users/:id', isAuth, isAdmin, deleteUserValidation, checkError, deleteUser);
+router.delete('/users/:id', isAdmin, deleteUser);
 
-router.patch('/users/:id', isAuth, isAdmin, updateUserRoleValidation, checkError, updateUserRole);
+router.patch('/users/:id', isAdmin, updateUserRole);
 
-router.get('/exercises', isAuth, isAdmin, getAllExercises);
+router.get('/muscle', isAdmin);
 
-router.get('/exercises/:id', isAuth, isAdmin, getExerciseByIdValidation, checkError, getExerciseById);
+router.get('/muscle/:id', isAdmin);
 
-router.put('/exercises/:id', isAuth, isAdmin, updateExerciseValidation, checkError, updateExercise);
+router.post('/muscle', isAdmin);
 
-router.post('/exercises', isAuth, isAdmin, createExerciseValidation, checkError, createExercise);
+router.put('/muscle/:id', isAdmin);
 
-router.delete('/exercises/:id', isAuth, isAdmin, deleteExerciseValidation, checkError, deleteExercise);
+router.delete('/muscle/:id', isAdmin);
 
-router.get('/posts', isAuth, isAdmin, getPosts);
+router.get('/equipment', isAdmin);
 
-router.get('/posts/user/:userId', isAuth, isAdmin, getPostsByUser);
+router.get('/equipment/:id', isAdmin);
 
-router.delete('/posts/:id', isAuth, isAdmin, deletePostValidation, checkError, deletePost);
+router.post('/equipment', isAdmin);
+
+router.put('/equipment/:id', isAdmin);
+
+router.delete('/equipment/:id', isAdmin);
+
+router.get('/exercises', isAdmin, getAllExercises);
+
+router.get('/exercises/:id', isAdmin, getExerciseById);
+
+// router.put('/exercises/:id', isAdmin, updateExercise);
+
+// router.post('/exercises', isAdmin, createExercise);
+
+// router.delete('/exercises/:id', isAdmin, deleteExercise);
+
+router.get('/posts', isAdmin, getPosts);
+
+router.get('/posts/user/:userId', isAdmin, getPostsByUser);
+
+router.delete('/posts/:id', isAdmin, deletePost);
 
 export default router;
