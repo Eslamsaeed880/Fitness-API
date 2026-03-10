@@ -40,19 +40,11 @@ const userSchema = new Schema({
         maxLength: 300,
         default: ""
     },
-    channelTags: {
-        type: [String],
-        default: []
-    },
     socialLinks: {
         x: String,
         instagram: String,
         facebook: String,
         website: String
-    },
-    isVerified: {
-        type: Boolean,
-        default: false
     },
     phone: {
         type: String,

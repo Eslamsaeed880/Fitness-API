@@ -26,25 +26,25 @@ router.delete('/users/:id', isAdmin, deleteUser);
 
 router.patch('/users/:id', isAdmin, updateUserRole);
 
-router.get('/muscle', isAdmin);
+router.get('/muscles', isAdmin);
 
-router.get('/muscle/:id', isAdmin);
+router.get('/muscles/:id', isAdmin);
 
-router.post('/muscle', isAdmin);
+router.post('/muscles', isAdmin);
 
-router.put('/muscle/:id', isAdmin);
+router.put('/muscles/:id', isAdmin);
 
-router.delete('/muscle/:id', isAdmin);
+router.delete('/muscles/:id', isAdmin);
 
-router.get('/equipment', isAdmin);
+router.get('/equipments', isAdmin);
 
-router.get('/equipment/:id', isAdmin);
+router.get('/equipments/:id', isAdmin);
 
-router.post('/equipment', isAdmin);
+router.post('/equipments', isAdmin);
 
-router.put('/equipment/:id', isAdmin);
+router.put('/equipments/:id', isAdmin);
 
-router.delete('/equipment/:id', isAdmin);
+router.delete('/equipments/:id', isAdmin);
 
 router.get('/exercises', isAdmin, getAllExercises);
 

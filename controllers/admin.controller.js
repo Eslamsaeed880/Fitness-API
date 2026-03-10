@@ -1,44 +1,76 @@
 import User from '../models/user.model.js';
 // import Exercise from '../models/exercise.model.js';
 import Post from '../models/post.model.js';
+import Muscle from '../models/muscle.model.js';
+import APIError from '../utils/APIError.js';
+import APIResponse from '../utils/APIResponse.js';
 
+// @Desc: Get all users with pagination, search, and sorting
+// @Route: /api/v1/admin/users?page=1&limit=10&search=keyword&sort=asc
+// @Access: Admin only
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find();
-        res.status(200).json(users);
+        const { page = 1, limit = 10, search = '', sort = 'asc' } = req.query;
+
+        const searchRegex = new RegExp(search, 'i');
+        const users = await User.find({
+                $or: [
+                    { username: { $regex: searchRegex } },
+                    { email: { $regex: searchRegex } }
+                ]
+            })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: sort === 'asc' ? 1 : -1 })
+            .select('-password -numberOfFollowers -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -coverImage -profilePicture -socialLinks -location');
+
+        const total = await User.countDocuments();
+
+        res.status(200).json(new APIResponse(200, {users, total, page, limit}, 'Users retrieved successfully.'));
+        
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        console.log(err.message);
+        next(new APIError(500, err.message || 'Server error.'));
     }
 };
 
+// @Desc: Get user by ID
+// @Route: /api/v1/admin/users/:id
+// @Access: Admin only
 export const getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(req.params.id).select('-password');
 
         if (user) {
-            res.status(200).json(user);
+            res.status(200).json(new APIResponse(200, user, 'User retrieved successfully.'));
         } else {
-            res.status(404).json({ message: 'User not found.' });
+            res.status(404).json(new APIError(404, 'User not found.'));
         }
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
+// @Desc: Delete user by ID
+// @Route: /api/v1/admin/users/:id
+// @Access: Admin only
 export const deleteUser = async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
 
         if (user) {
-            res.status(200).json({ message: 'User deleted successfully.' });
+            res.status(200).json(new APIResponse(200, {}, 'User deleted successfully.'));
         } else {
-            res.status(404).json({ message: 'User not found.' });
+            res.status(404).json(new APIError(404, 'User not found.'));
         }
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
+// @Desc: Update user role
+// @Route: /api/v1/admin/users/:id
+// @Access: Admin only
 export const updateUserRole = async (req, res) => {
     try {
         const { role } = req.body;
@@ -47,14 +79,37 @@ export const updateUserRole = async (req, res) => {
         if (user) {
             user.role = role;
             await user.save();
-            res.status(200).json({ message: 'User role updated successfully.' });
+            res.status(200).json(new APIResponse(200, {}, 'User role updated successfully.'));
         } else {
-            res.status(404).json({ message: 'User not found.' });
+            res.status(404).json(new APIError(404, 'User not found.'));
         }
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
+
+// @Desc: Get all muscles
+// @Route: /api/v1/admin/muscles?search=keyword&page=1&limit=10&sort=asc
+// @Access: Admin only
+export const getAllMuscles = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, search = '', sort = 'asc' } = req.query;
+
+        const muscles = await Muscle.find()
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: sort === 'asc' ? 1 : -1 })
+            .where('name').regex(new RegExp(search, 'i'));
+
+        const total = await Muscle.countDocuments();
+
+        res.status(200).json(new APIResponse(200, { muscles, total, page, limit }, 'Muscles retrieved successfully.'));
+    } catch (err) {
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+    }
+};
+
+
 
 export const createExercise = async (req, res) => {
     try {
@@ -69,9 +124,9 @@ export const createExercise = async (req, res) => {
             createdBy: userId
         });
         await newExercise.save();
-        res.status(201).json({ message: 'Exercise created successfully.', exercise: newExercise });
+        res.status(201).json(new APIResponse(201, { exercise: newExercise }, 'Exercise created successfully.'));
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
@@ -100,9 +155,9 @@ export const getAllExercises = async (req, res) => {
             .populate('muscleGroup')
             .sort(sortOrder);
 
-        res.status(200).json(exercises);
+        res.status(200).json(new APIResponse(200, exercises, 'Exercises retrieved successfully.'));
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
@@ -112,12 +167,12 @@ export const getExerciseById = async (req, res) => {
             .populate('muscleGroup');
 
         if (exercise) {
-            res.status(200).json(exercise);
+            res.status(200).json(new APIResponse(200, exercise, 'Exercise retrieved successfully.'));
         } else {
-            res.status(404).json({ message: 'Exercise not found.' });
+            res.status(404).json(new APIError(404, 'Exercise not found.'));
         }
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
@@ -134,12 +189,12 @@ export const updateExercise = async (req, res) => {
             exercise.videoUrl = videoUrl;
 
             await exercise.save();
-            res.status(200).json({ message: 'Exercise updated successfully.', exercise });
+            res.status(200).json(new APIResponse(200, { exercise }, 'Exercise updated successfully.'));
         } else {
-            res.status(404).json({ message: 'Exercise not found.' });
+            res.status(404).json(new APIError(404, 'Exercise not found.'));
         }
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
@@ -148,12 +203,12 @@ export const deleteExercise = async (req, res) => {
         const exercise = await Exercise.findByIdAndDelete(req.params.id);
 
         if (exercise) {
-            res.status(200).json({ message: 'Exercise deleted successfully.' });
+            res.status(200).json(new APIResponse(200, null, 'Exercise deleted successfully.'));
         } else {
-            res.status(404).json({ message: 'Exercise not found.' });
+            res.status(404).json(new APIError(404, 'Exercise not found.'));
         }
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
@@ -161,18 +216,18 @@ export const getPostsByUser = async (req, res) => {
     try {
         const { userId } = req.params;
         const posts = await Post.find({ userId }).populate('userId', 'username email').exec();
-        res.status(200).json(posts);
+        res.status(200).json(new APIResponse(200, posts, 'Posts retrieved successfully.'));
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 }
 
 export const getPosts = async (req, res) => {
     try {
         const posts = await Post.find().populate('userId', 'username email').exec();
-        res.status(200).json(posts);
+        res.status(200).json(new APIResponse(200, posts, 'Posts retrieved successfully.'));
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
 
@@ -181,10 +236,10 @@ export const deletePost = async (req, res) => {
         const { id } = req.params;
         const post = await Post.findByIdAndDelete(id);
         if (!post) {
-            return res.status(404).json({ message: 'Post not found.' });
+            return res.status(404).json(new APIError(404, 'Post not found.'));
         }
-        res.status(200).json({ message: 'Post deleted successfully.' });
+        res.status(200).json(new APIResponse(200, null, 'Post deleted successfully.'));
     } catch (err) {
-        res.status(500).json({ message: 'Server error.', error: err.message });
+        res.status(500).json(new APIError(500, err.message || 'Server error.'));
     }
 };
