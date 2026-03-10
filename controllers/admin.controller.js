@@ -30,7 +30,8 @@ export const getAllUsers = async (req, res) => {
         
     } catch (err) {
         console.log(err.message);
-        next(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -47,7 +48,8 @@ export const getUserById = async (req, res) => {
             res.status(404).json(new APIError(404, 'User not found.'));
         }
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -64,7 +66,8 @@ export const deleteUser = async (req, res) => {
             res.status(404).json(new APIError(404, 'User not found.'));
         }
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -84,9 +87,36 @@ export const updateUserRole = async (req, res) => {
             res.status(404).json(new APIError(404, 'User not found.'));
         }
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
+
+// @Desc: Create new muscle
+// @Route: /api/v1/admin/muscles
+// @Access: Admin only
+export const createMuscle = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+
+        const muscle = new Muscle({
+            name,
+            description
+        });
+
+        await muscle.save();
+
+        res.status(201).json(new APIResponse(201, { muscle }, 'Muscle created successfully.'));
+
+    } catch (err) {
+        const status = err.statusCode || 500;
+
+        if(err.code === 11000) {
+            return res.status(400).json(new APIError(400, 'Muscle with this name already exists.'));
+        }
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
 
 // @Desc: Get all muscles
 // @Route: /api/v1/admin/muscles?search=keyword&page=1&limit=10&sort=asc
@@ -105,7 +135,8 @@ export const getAllMuscles = async (req, res) => {
 
         res.status(200).json(new APIResponse(200, { muscles, total, page, limit }, 'Muscles retrieved successfully.'));
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -126,7 +157,8 @@ export const createExercise = async (req, res) => {
         await newExercise.save();
         res.status(201).json(new APIResponse(201, { exercise: newExercise }, 'Exercise created successfully.'));
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -157,7 +189,8 @@ export const getAllExercises = async (req, res) => {
 
         res.status(200).json(new APIResponse(200, exercises, 'Exercises retrieved successfully.'));
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -172,7 +205,8 @@ export const getExerciseById = async (req, res) => {
             res.status(404).json(new APIError(404, 'Exercise not found.'));
         }
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -194,7 +228,8 @@ export const updateExercise = async (req, res) => {
             res.status(404).json(new APIError(404, 'Exercise not found.'));
         }
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -208,7 +243,8 @@ export const deleteExercise = async (req, res) => {
             res.status(404).json(new APIError(404, 'Exercise not found.'));
         }
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -218,7 +254,8 @@ export const getPostsByUser = async (req, res) => {
         const posts = await Post.find({ userId }).populate('userId', 'username email').exec();
         res.status(200).json(new APIResponse(200, posts, 'Posts retrieved successfully.'));
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 }
 
@@ -227,7 +264,8 @@ export const getPosts = async (req, res) => {
         const posts = await Post.find().populate('userId', 'username email').exec();
         res.status(200).json(new APIResponse(200, posts, 'Posts retrieved successfully.'));
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
@@ -240,6 +278,7 @@ export const deletePost = async (req, res) => {
         }
         res.status(200).json(new APIResponse(200, null, 'Post deleted successfully.'));
     } catch (err) {
-        res.status(500).json(new APIError(500, err.message || 'Server error.'));
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };

@@ -10,6 +10,8 @@ import {
     updateExercise,
     deleteExercise,
     createExercise,
+    getAllMuscles,
+    createMuscle,
     getPosts,
     getPostsByUser,
     deletePost
@@ -26,11 +28,11 @@ router.delete('/users/:id', isAdmin, deleteUser);
 
 router.patch('/users/:id', isAdmin, updateUserRole);
 
-router.get('/muscles', isAdmin);
+router.get('/muscles', isAdmin, getAllMuscles);
 
 router.get('/muscles/:id', isAdmin);
 
-router.post('/muscles', isAdmin);
+router.post('/muscles', isAdmin, createMuscle);
 
 router.put('/muscles/:id', isAdmin);
 
