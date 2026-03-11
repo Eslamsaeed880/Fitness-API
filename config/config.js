@@ -8,6 +8,7 @@ const config = {
     refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d',
 
     port: process.env.PORT || 3000,
+    apiBaseUrl: process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`,
 
     cloudinary: {
         cloudName: process.env.CLOUDINARY_CLOUD_NAME,
@@ -27,7 +28,7 @@ const config = {
 
     googleClientId: process.env.GOOGLE_CLIENT_ID,
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    googleCallbackURL: process.env.GOOGLE_CALLBACK_URL,
+    googleCallbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`}/api/v1/auth/google/callback`,
 
     redisUrl: process.env.REDIS_URL,
     videoCacheTTL: Number(process.env.VIDEO_CACHE_TTL) || 60,

@@ -1,37 +1,28 @@
-import User from '../users/user.model.js';
 import APIError from '../utils/APIError.js';
 import APIResponse from '../utils/APIResponse.js';
-import config from '../config/config.js';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import bcrypt from 'bcrypt';
 import AuthService from './auth.service.js';
+
+const authService = new AuthService();
+
+const handleAuthError = (error, next, fallbackStatus, fallbackMessage) => {
+    if (error instanceof APIError) {
+        return next(error);
+    }
+
+    return next(new APIError(fallbackStatus, error.message || fallbackMessage));
+};
 
 export const signUp = async (req, res, next) => {
     try {
         const { fullName, username, email, password } = req.body;
 
-        const exists = await User.findOne({ $or: [ { email }, { username } ] });
-        if (exists) {
-            return next(new APIError(409, "User with given email or username already exists"));
-        }
-
-        const userData = {
-            fullName,
-            username,
-            email,
-            password,
-        };
-
-        const newUser = new User(userData);
-
-        await newUser.save();
+        const newUser = await authService.signup(fullName, username, email, password);
 
         /* For welcome email, we can enqueue background jobs like this:
 
         await enqueueEmailEvent({
             eventId: crypto.randomUUID(),
-            to: userData.email,
+            to: email,
             subject: 'Welcome to Our Social Media App!',
             html: `<h2>Hi ${username},</h2><br><br>Thank you for signing up for our social media app! We're excited to have you on board.<br><br>Best regards,<br>The Team`,
         });
@@ -42,84 +33,50 @@ export const signUp = async (req, res, next) => {
 
     } catch (error) {
         console.error('Sign up error:', error);
-        return next(new APIError(500, error.message || 'Failed to create user'));
+        return handleAuthError(error, next, 500, 'Failed to create user');
     }
 }
 
 export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        
-        const existingUser = await User.findOne({ email });
-        
-        if (!existingUser) {
-            return next(new APIError(401, "Invalid email or password"));
-        }
-        
-        const isMatch = await existingUser.comparePassword(password);
-    
-        if (!isMatch) {
-            return next(new APIError(401, "Invalid email or password"));
-        }
-        
-        const token = existingUser.generateToken();
-        const response = new APIResponse(200, { user: existingUser, token }, "Login successful");
+
+        const { user, token } = await authService.login(email, password);
+        const response = new APIResponse(200, { user, token }, "Login successful");
 
         res.status(response.statusCode).json(response);
     } catch (error) {
         console.error('Login error:', error);
-        return next(new APIError(401, "Invalid email or password"));
+        return handleAuthError(error, next, 401, 'Invalid email or password');
     }
 }
 
-export const getGoogleAuthUrl = async (req, res) => {
+export const getGoogleAuthUrl = async (req, res, next) => {
     try {
-        const redirectUri = encodeURIComponent(config.googleCallbackURL);
-        const scope = encodeURIComponent('profile email');
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${config.googleClientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
-        
+        const googleAuthUrl = await authService.getGoogleAuthUrl();
+
         const response = new APIResponse(200, { authUrl: googleAuthUrl }, "Google authentication URL generated");
         res.status(response.statusCode).json(response);
     } catch (error) {
-        return res.status(500).json(new APIResponse(500, null, "Failed to generate Google auth URL", { errors: error.message }));
+        return handleAuthError(error, next, 500, 'Failed to generate Google auth URL');
     }
 }
 
-export const googleLoginCallback = async (req, res) => {
+export const googleLoginCallback = async (req, res, next) => {
     try {
-        const token = jwt.sign(
-            { 
-                id: req.user._id, 
-                role: req.user.role 
-            }, 
-            config.jwtSecretKey, 
-            { expiresIn: config.tokenExpiry }
-        );
-        
-        const response = new APIResponse(200, { user: req.user, token }, "Google authentication successful");
+        const { user, token } = await authService.googleLoginCallback(req.user);
+
+        const response = new APIResponse(200, { user, token }, "Google authentication successful");
         res.status(response.statusCode).json(response);
     } catch (error) {
-        return res.status(500).json(new APIResponse(500, null, "Google authentication callback failed", { errors: error.message }));
+        return handleAuthError(error, next, 500, 'Google authentication callback failed');
     }
 }
 
 export const resetPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
-        
-        if (!user) {
-            return next(new APIError(404, 'User with this email does not exist'));
-        }
-
-        const resetToken = crypto.randomBytes(32).toString('hex');
-
-        user.resetToken = resetToken;
-        user.resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
-
-        await user.save();
-
-        const resetLink = `${process.env.FRONTEND_URL}/confirm-reset-password?token=${resetToken}`;
+        const { resetLink, user } = await authService.resetPassword(email);
 
         /* Enqueue password reset email job like this:
         await enqueueEmailEvent({
@@ -171,7 +128,7 @@ export const resetPassword = async (req, res, next) => {
         });
     } catch (error) {
         console.error('Password reset error:', error);
-        return next(new APIError(500, error.message || "Failed to process password reset request"));
+        return handleAuthError(error, next, 500, 'Failed to process password reset request');
     }
 }
 
@@ -180,22 +137,7 @@ export const confirmResetPassword = async (req, res, next) => {
         const { password } = req.body;
         const { token } = req.query;
 
-        const user = await User.findOne({
-            resetToken: token,
-            resetTokenExpiry: { $gt: new Date() } 
-        });
-        
-        if (!user) {
-            return next(new APIError(400, 'Invalid or expired reset token'));
-        }
-
-        const saltRounds = parseInt(config.bcryptSaltRounds);
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        user.password = hashedPassword;
-        user.resetToken = null;
-        user.resetTokenExpiry = null;
-        await user.save();
+        await authService.confirmResetPassword(token, password);
 
         /* For sending password reset confirmation email, we can enqueue a job like this:
         await enqueueEmailEvent({
@@ -219,7 +161,7 @@ export const confirmResetPassword = async (req, res, next) => {
         res.status(response.statusCode).json(response);
     } catch (err) {
         console.error('Confirm reset password error:', err);
-        return next(new APIError(500, err.message || "Failed to reset password"));
+        return handleAuthError(err, next, 500, 'Failed to reset password');
     }
 }
 
@@ -227,26 +169,12 @@ export const changePassword = async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user.id;
-        const user = await User.findById(userId);
-        
-        if (!user) {
-            return next(new APIError(404, 'User not found'));
-        }
-        
-        const isMatch = await user.comparePassword(currentPassword);
-        if (!isMatch) {
-            return next(new APIError(400, "Current password is incorrect"));
-        }
-        
-        const saltRounds = parseInt(config.bcryptSaltRounds);
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-        user.password = hashedPassword;
-        
-        await user.save();
+
+        await authService.changePassword(userId, currentPassword, newPassword);
         const response = new APIResponse(200, null, "Password changed successfully");
         res.status(response.statusCode).json(response);
     } catch (error) {
         console.error('Change password error:', error);
-        next(new APIError(500, error.message || 'Server error'));
+        return handleAuthError(error, next, 500, 'Server error');
     }
 }

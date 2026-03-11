@@ -9,10 +9,14 @@ const buildFallbackUsername = (email) => {
 };
 
 const configurePassport = () => {
+    if (!config.googleClientId || !config.googleClientSecret || !config.googleCallbackURL) {
+      throw new Error('Google OAuth is misconfigured. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL (or API_BASE_URL).');
+    }
+
     passport.use(new GoogleStrategy({
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: config.googleCallbackURL || '/api/v1/auth/google/callback'
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: config.googleCallbackURL
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
