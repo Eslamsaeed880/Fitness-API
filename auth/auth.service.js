@@ -11,11 +11,16 @@ export default class AuthService {
             throw new APIError(401, 'Invalid email or password');
         }
 
+        if(user.authProvider === 'google') {
+            throw new APIError(400, 'Please log in with Google for this account');
+        }
+        
         const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
             throw new APIError(401, 'Invalid email or password');
         }
+
 
         const token = user.generateToken();
 
