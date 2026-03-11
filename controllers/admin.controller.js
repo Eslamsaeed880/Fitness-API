@@ -1,4 +1,4 @@
-import User from '../models/user.model.js';
+import User from '../users/user.model.js';
 // import Exercise from '../models/exercise.model.js';
 import Post from '../models/post.model.js';
 import Muscle from '../models/muscle.model.js';
@@ -158,6 +158,9 @@ export const getMuscleById = async (req, res) => {
     }
 }
 
+// @Desc: Update muscle by ID
+// @Route: /api/v1/admin/muscles/:id
+// @Access: Admin only
 export const updateMuscle = async (req, res) => {
     try {
         const { name, description } = req.body;
@@ -183,6 +186,9 @@ export const updateMuscle = async (req, res) => {
     }
 }
 
+// @Desc: Delete muscle by ID
+// @Route: /api/v1/admin/muscles/:id
+// @Access: Admin only
 export const deleteMuscle = async (req, res) => {
     try {
         const muscle = await Muscle.findByIdAndDelete(req.params.id);

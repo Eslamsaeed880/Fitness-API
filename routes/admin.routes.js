@@ -50,9 +50,9 @@ router.put('/equipments/:id', isAdmin);
 
 router.delete('/equipments/:id', isAdmin);
 
-router.get('/exercises', isAdmin, getAllExercises);
+// router.get('/exercises', isAdmin, getAllExercises);
 
-router.get('/exercises/:id', isAdmin, getExerciseById);
+// router.get('/exercises/:id', isAdmin, getExerciseById);
 
 // router.put('/exercises/:id', isAdmin, updateExercise);
 
@@ -60,10 +60,10 @@ router.get('/exercises/:id', isAdmin, getExerciseById);
 
 // router.delete('/exercises/:id', isAdmin, deleteExercise);
 
-router.get('/posts', isAdmin, getPosts);
+// router.get('/posts', isAdmin, getPosts);
 
-router.get('/posts/user/:userId', isAdmin, getPostsByUser);
+// router.get('/posts/user/:userId', isAdmin, getPostsByUser);
 
-router.delete('/posts/:id', isAdmin, deletePost);
+// router.delete('/posts/:id', isAdmin, deletePost);
 
 export default router;

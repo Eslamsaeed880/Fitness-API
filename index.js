@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import passport, { configurePassport } from './middleware/googleAuth.js';
 import connectDB from './config/mongodb.js';
-import authRoutes from './routes/auth.routes.js';
+import authRoutes from './auth/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 // import followingRoutes from './routes/follow.routes.js';
 // import postRoutes from './routes/post.routes.js';
