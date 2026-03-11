@@ -23,4 +23,8 @@ export default class UserService {
         .select('-password -numberOfFollowers -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -coverImage -profilePicture -socialLinks -location');
     }
 
+    async getUserById(userId) {
+        return await this.User.findById(userId).select('-password -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -location');
+    }
+
 }

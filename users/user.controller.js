@@ -28,3 +28,20 @@ export const getAllUsers = async (req, res) => {
         res.status(500).json(new APIResponse(err.statusCode || 500, null, err.message || 'Failed to fetch users'));
     }
 }
+
+// @Desc: Get user by ID
+// @Route: GET /api/v1/users/:id
+// @Access: Private
+export const getUserById = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const userService = new UserService(User);
+        const user = await userService.getUserById(userId);
+
+        res.status(200).json(new APIResponse(200, { user }, 'User fetched successfully'));
+
+    } catch (err) {
+        console.error('Error fetching user:', err);
+        res.status(500).json(new APIResponse(err.statusCode || 500, null, err.message || 'Failed to fetch user'));
+    }
+}
