@@ -4,6 +4,7 @@ import Post from '../models/post.model.js';
 import Muscle from '../models/muscle.model.js';
 import APIError from '../utils/APIError.js';
 import APIResponse from '../utils/APIResponse.js';
+import UserService from '../users/user.service.js';
 
 // @Desc: Get all users with pagination, search, and sorting
 // @Route: /api/v1/admin/users?page=1&limit=10&search=keyword&sort=asc
@@ -11,22 +12,12 @@ import APIResponse from '../utils/APIResponse.js';
 export const getAllUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = '', sort = 'asc' } = req.query;
+        const userService = new UserService(User);
 
-        const searchRegex = new RegExp(search, 'i');
-        const users = await User.find({
-                $or: [
-                    { username: { $regex: searchRegex } },
-                    { email: { $regex: searchRegex } }
-                ]
-            })
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .sort({ createdAt: sort === 'asc' ? 1 : -1 })
-            .select('-password -numberOfFollowers -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -coverImage -profilePicture -socialLinks -location');
+        const users = await userService.getAllUsers(parseInt(page), parseInt(limit), search, 'createdAt', sort);
 
-        const total = await User.countDocuments();
 
-        res.status(200).json(new APIResponse(200, {users, total, page, limit}, 'Users retrieved successfully.'));
+        res.status(200).json(new APIResponse(200, {users}, 'Users retrieved successfully.'));
         
     } catch (err) {
         console.log(err.message);
