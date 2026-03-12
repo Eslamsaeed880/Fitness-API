@@ -1,11 +1,14 @@
 import User from '../users/user.model.js';
 // import Exercise from '../models/exercise.model.js';
 import Post from '../models/post.model.js';
-import Muscle from '../models/muscle.model.js';
+import Muscle from '../muscles/muscle.model.js';
 import APIError from '../utils/APIError.js';
 import APIResponse from '../utils/APIResponse.js';
 import UserService from '../users/user.service.js';
+import MuscleService from '../muscles/muscle.service.js';
 import AdminService from './admin.service.js';
+
+const adminService = new AdminService(new UserService(User), new MuscleService(Muscle));
 
 // @Desc: Get all users with pagination, search, and sorting
 // @Route: /api/v1/admin/users?page=1&limit=10&search=keyword&sort=asc
@@ -13,7 +16,6 @@ import AdminService from './admin.service.js';
 export const getAllUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = '', sort = 'asc' } = req.query;
-        const adminService = new AdminService(new UserService(User));
         const users = await adminService.getAllUsers(parseInt(page), parseInt(limit), search, 'createdAt', sort);
 
         res.status(200).json(new APIResponse(200, {users}, 'Users retrieved successfully.'));
@@ -31,7 +33,6 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
     try {
         const userId = req.params.id;
-        const adminService = new AdminService(new UserService(User));
         const user = await adminService.getUserById(userId);
 
         res.status(200).json(new APIResponse(200, { user }, 'User retrieved successfully.'));
@@ -47,7 +48,6 @@ export const getUserById = async (req, res) => {
 export const deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const adminService = new AdminService(new UserService(User));
         await adminService.deleteUser(userId);
 
         res.status(200).json(new APIResponse(200, {}, 'User deleted successfully.'));
@@ -64,7 +64,6 @@ export const updateUserRole = async (req, res) => {
     try {
         const { role } = req.body;
         const userId = req.params.id;
-        const adminService = new AdminService(new UserService(User));
         await adminService.updateUserRole(userId, role);
 
         res.status(200).json(new APIResponse(200, {}, 'User role updated successfully.'));
@@ -81,12 +80,7 @@ export const createMuscle = async (req, res) => {
     try {
         const { name, description } = req.body;
 
-        const muscle = new Muscle({
-            name,
-            description
-        });
-
-        await muscle.save();
+        const muscle = await adminService.createMuscle({ name, description });
 
         res.status(201).json(new APIResponse(201, { muscle }, 'Muscle created successfully.'));
 
@@ -101,21 +95,15 @@ export const createMuscle = async (req, res) => {
 }
 
 // @Desc: Get all muscles
-// @Route: /api/v1/admin/muscles?search=keyword&page=1&limit=10&sort=asc
+// @Route: /api/v1/admin/muscles?search=keyword&page=1&limit=10&sortOrder=asc&sortBy=name
 // @Access: Admin only
 export const getAllMuscles = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search = '', sort = 'asc' } = req.query;
+        const { page = 1, limit = 10, search = '', sortOrder = 'asc', sortBy = 'name' } = req.query;
 
-        const muscles = await Muscle.find()
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .sort({ createdAt: sort === 'asc' ? 1 : -1 })
-            .where('name').regex(new RegExp(search, 'i'));
+        const muscles = await adminService.getAllMuscles(page, limit, search, sortBy, sortOrder);
 
-        const total = await Muscle.countDocuments();
-
-        res.status(200).json(new APIResponse(200, { muscles, total, page, limit }, 'Muscles retrieved successfully.'));
+        res.status(200).json(new APIResponse(200, muscles, 'Muscles retrieved successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
@@ -127,13 +115,10 @@ export const getAllMuscles = async (req, res) => {
 // @Access: Admin only
 export const getMuscleById = async (req, res) => {
     try {
-        const muscle = await Muscle.findById(req.params.id);
+        const muscleId = req.params.id;
+        const muscle = await adminService.getMuscleById(muscleId);
 
-        if (muscle) {
-            res.status(200).json(new APIResponse(200, muscle, 'Muscle retrieved successfully.'));
-        }
-
-        return res.status(400).json(new APIError(400, 'Invalid Muscle ID'));
+        res.status(200).json(new APIResponse(200, { muscle }, 'Muscle retrieved successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
@@ -146,19 +131,10 @@ export const getMuscleById = async (req, res) => {
 export const updateMuscle = async (req, res) => {
     try {
         const { name, description } = req.body;
+        const muscleId = req.params.id;
+        const muscle = await adminService.updateMuscle(muscleId, { name, description });
 
-        const muscle = await Muscle.findById(req.params.id);
-
-        if (muscle) {
-            muscle.name = name || muscle.name;
-            muscle.description = description || muscle.description;
-
-            await muscle.save();
-
-            res.status(200).json(new APIResponse(200, { muscle }, 'Muscle updated successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'Invalid Muscle ID'));
-        }
+        res.status(200).json(new APIResponse(200, { muscle }, 'Muscle updated successfully.'));
     } catch (err) {
         if(err.code === 11000) {
             return res.status(400).json(new APIError(400, 'Muscle with this name already exists.'));
@@ -173,13 +149,10 @@ export const updateMuscle = async (req, res) => {
 // @Access: Admin only
 export const deleteMuscle = async (req, res) => {
     try {
-        const muscle = await Muscle.findByIdAndDelete(req.params.id);
+        const muscleId = req.params.id;
+        const muscle = await adminService.deleteMuscle(muscleId);
 
-        if (!muscle) {
-            return res.status(404).json(new APIError(404, 'Muscle not found.'));
-        }
-        
-        return res.status(200).json(new APIResponse(200, {}, 'Muscle deleted successfully.'));
+        res.status(200).json(new APIResponse(200, { muscle  }, 'Muscle deleted successfully.'));
 
     } catch (err) {
         const status = err.statusCode || 500;
