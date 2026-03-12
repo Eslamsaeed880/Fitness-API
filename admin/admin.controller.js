@@ -5,6 +5,7 @@ import Muscle from '../models/muscle.model.js';
 import APIError from '../utils/APIError.js';
 import APIResponse from '../utils/APIResponse.js';
 import UserService from '../users/user.service.js';
+import AdminService from './admin.service.js';
 
 // @Desc: Get all users with pagination, search, and sorting
 // @Route: /api/v1/admin/users?page=1&limit=10&search=keyword&sort=asc
@@ -12,10 +13,8 @@ import UserService from '../users/user.service.js';
 export const getAllUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = '', sort = 'asc' } = req.query;
-        const userService = new UserService(User);
-
-        const users = await userService.getAllUsers(parseInt(page), parseInt(limit), search, 'createdAt', sort);
-
+        const adminService = new AdminService(new UserService(User));
+        const users = await adminService.getAllUsers(parseInt(page), parseInt(limit), search, 'createdAt', sort);
 
         res.status(200).json(new APIResponse(200, {users}, 'Users retrieved successfully.'));
         
