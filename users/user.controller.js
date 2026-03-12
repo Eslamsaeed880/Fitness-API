@@ -3,13 +3,14 @@ import APIResponse from "../utils/APIResponse.js";
 import APIError from "../utils/APIError.js";
 import UserService from "./user.service.js";
 
+const userService = new UserService(User);
+
 // @Desc: Get all users
 // @Route: GET /api/v1/users?page=1&limit=10&search=keyword&sortBy=username&sortOrder=asc
 // @Access: Private
 export const getAllUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-        const userService = new UserService(User);
         const users = await userService.getAllUsers(parseInt(page), parseInt(limit), search, sortBy, sortOrder);
 
         const totalResults = await User.countDocuments({
@@ -35,7 +36,6 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
     try {
         const userId = req.params.id;
-        const userService = new UserService(User);
         const user = await userService.getUserById(userId);
 
         if (!user) {
@@ -55,7 +55,10 @@ export const getUserById = async (req, res) => {
 // @Access: Private (user can only update their own profile picture)
 export const updateProfilePicture = async (req, res) => {
     try {
+        const userId = req.params.id;
+        const user = await userService.updateProfilePicture(userId, req.file);
 
+        res.status(200).json(new APIResponse(200, { user }, 'Profile picture updated successfully'));
     } catch (err) {
         console.error('Error updating profile picture:', err);
         res.status(500).json(new APIError(err.statusCode || 500, null, err.message || 'Failed to update profile picture'));
