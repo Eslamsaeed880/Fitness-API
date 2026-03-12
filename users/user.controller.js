@@ -25,7 +25,7 @@ export const getAllUsers = async (req, res) => {
 
     } catch (err) {
         console.error('Error fetching users:', err);
-        res.status(500).json(new APIResponse(err.statusCode || 500, null, err.message || 'Failed to fetch users'));
+        res.status(500).json(new APIError(err.statusCode || 500, null, err.message || 'Failed to fetch users'));
     }
 }
 
@@ -46,6 +46,18 @@ export const getUserById = async (req, res) => {
 
     } catch (err) {
         console.error('Error fetching user:', err);
-        res.status(500).json(new APIResponse(err.statusCode || 500, null, err.message || 'Failed to fetch user'));
+        res.status(500).json(new APIError(err.statusCode || 500, null, err.message || 'Failed to fetch user'));
+    }
+}
+
+// @Desc: Update user profile picture
+// @Route: PATCH /api/v1/users/:id/profile-picture
+// @Access: Private (user can only update their own profile picture)
+export const updateProfilePicture = async (req, res) => {
+    try {
+
+    } catch (err) {
+        console.error('Error updating profile picture:', err);
+        res.status(500).json(new APIError(err.statusCode || 500, null, err.message || 'Failed to update profile picture'));
     }
 }

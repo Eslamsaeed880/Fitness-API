@@ -35,21 +35,11 @@ export default class AdminService {
 
     async updateMuscle(muscleId, muscleData) {
         const muscle = await this.muscleService.updateMuscle(muscleId, muscleData);
-
-        if(!muscle) {
-            throw new APIError(404, 'Muscle not found.');
-        }
-
         return muscle;
     }
 
     async deleteMuscle(muscleId) {
         const muscle = await this.muscleService.deleteMuscle(muscleId);
-
-        if(!muscle) {
-            throw new APIError(404, 'Muscle not found.');
-        }
-
         return muscle;
     }
 }
