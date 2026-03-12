@@ -1,3 +1,4 @@
+import APIError from "../utils/APIError.js";
 
 
 export default class UserService {
@@ -42,11 +43,30 @@ export default class UserService {
     }
 
     async getUserById(userId) {
-        return await this.User.findById(userId).select('-password -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -location');
+        const user = await this.User.findById(userId).select('-password -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -location');
+        if (!user) {
+            throw new APIError(404, 'User not found.');
+        }
+        return user;
     }
 
     async deleteUser(userId) {
-        return await this.User.findByIdAndDelete(userId);
+        const user = await this.User.findByIdAndDelete(userId);
+        if (!user) {
+            throw new APIError(404, 'User not found.');
+        }
+        return user;
+    }
+
+    async updateUserRole(userId, newRole) {
+        const user = await this.User.findById(userId);
+        if (!user) {
+            throw new APIError(404, 'User not found.');
+        }
+        user.role = newRole;
+        await user.save();
+
+        return user;
     }
 
 }

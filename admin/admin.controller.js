@@ -30,13 +30,11 @@ export const getAllUsers = async (req, res) => {
 // @Access: Admin only
 export const getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
+        const userId = req.params.id;
+        const adminService = new AdminService(new UserService(User));
+        const user = await adminService.getUserById(userId);
 
-        if (user) {
-            res.status(200).json(new APIResponse(200, user, 'User retrieved successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'User not found.'));
-        }
+        res.status(200).json(new APIResponse(200, { user }, 'User retrieved successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
@@ -48,13 +46,11 @@ export const getUserById = async (req, res) => {
 // @Access: Admin only
 export const deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        const userId = req.params.id;
+        const adminService = new AdminService(new UserService(User));
+        await adminService.deleteUser(userId);
 
-        if (user) {
-            res.status(200).json(new APIResponse(200, {}, 'User deleted successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'User not found.'));
-        }
+        res.status(200).json(new APIResponse(200, {}, 'User deleted successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
@@ -67,15 +63,11 @@ export const deleteUser = async (req, res) => {
 export const updateUserRole = async (req, res) => {
     try {
         const { role } = req.body;
-        const user = await User.findById(req.params.id);
+        const userId = req.params.id;
+        const adminService = new AdminService(new UserService(User));
+        await adminService.updateUserRole(userId, role);
 
-        if (user) {
-            user.role = role;
-            await user.save();
-            res.status(200).json(new APIResponse(200, {}, 'User role updated successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'User not found.'));
-        }
+        res.status(200).json(new APIResponse(200, {}, 'User role updated successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
