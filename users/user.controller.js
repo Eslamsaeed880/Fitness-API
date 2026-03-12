@@ -64,3 +64,18 @@ export const updateProfilePicture = async (req, res) => {
         res.status(500).json(new APIError(err.statusCode || 500, null, err.message || 'Failed to update profile picture'));
     }
 }
+
+// @Desc: Update user cover image
+// @Route: PATCH /api/v1/users/:id/cover
+// @Access: Private (user can only update their own cover image)
+export const updateCoverImage = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await userService.updateCoverImage(userId, req.file);
+
+        res.status(200).json(new APIResponse(200, { user }, 'Cover image updated successfully'));
+    } catch (err) {
+        console.error('Error updating cover image:', err);
+        res.status(500).json(new APIError(err.statusCode || 500, null, err.message || 'Failed to update cover image'));
+    }
+}

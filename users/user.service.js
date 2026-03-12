@@ -100,4 +100,36 @@ export default class UserService {
         await user.save();
         return user;
     }
+
+    async updateCoverImage(userId, file) {
+        const user = await this.User
+            .findOne({ _id: userId })
+            .select('-password -email -resetToken -__v -resetTokenExpiry -authProvider -role -watchedVideos');
+    
+        if (!user) {
+            throw new APIError(404, 'User not found.');
+        }
+    
+        if (user._id.toString() !== userId) {
+            throw new APIError(403, 'Unauthorized to update this profile.');
+        }
+    
+        if (!file) {
+            user.coverImage.publicId = undefined;
+            user.coverImage.url = undefined;
+            await user.save();
+            // await invalidateUserCaches('profile:' + userId);
+            return user;
+        }
+    
+        const uploaded = await uploadToCloudinary(file.path, 'cover_images');
+        if(!uploaded || !uploaded.url || !uploaded.public_id) {
+            throw new APIError(500, "Failed to upload cover image");
+        }
+
+        user.coverImage.publicId = uploaded.public_id;
+        user.coverImage.url = uploaded.url;
+        await user.save();
+        return user;
+    }
 }
