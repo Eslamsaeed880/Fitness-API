@@ -1,4 +1,4 @@
-import isAdmin from '../middleware/isAdmin.js';
+import isAdmin from '../../middleware/isAdmin.js';
 import express from 'express';
 import { 
     getAllUsers, 

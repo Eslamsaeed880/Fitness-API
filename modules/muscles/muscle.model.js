@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import APIError from '../utils/APIError.js';
 
 const muscleSchema = new mongoose.Schema({
     name: {

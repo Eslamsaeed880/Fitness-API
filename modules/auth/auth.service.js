@@ -1,6 +1,6 @@
 import User from '../users/user.model.js';
-import APIError from '../utils/APIError.js';
-import config from '../config/config.js';
+import APIError from '../../utils/APIError.js';
+import config from '../../config/config.js';
 import crypto from 'crypto';
 
 export default class AuthService {

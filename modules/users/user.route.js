@@ -1,7 +1,7 @@
 import express from 'express';
 import { getAllUsers, getUserById, updateProfilePicture, updateCoverImage } from './user.controller.js';
-import isAuth from '../middleware/isAuth.js';
-import { upload } from '../middleware/multer.js';
+import isAuth from '../../middleware/isAuth.js';
+import { upload } from '../../middleware/multer.js';
 
 const router = express.Router();
 

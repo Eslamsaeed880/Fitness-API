@@ -1,5 +1,5 @@
-import APIError from "../utils/APIError.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import APIError from "../../utils/APIError.js";
+import { uploadToCloudinary } from "../../utils/cloudinary.js";
 
 export default class UserService {
     constructor(userModel) {

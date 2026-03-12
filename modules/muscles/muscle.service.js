@@ -1,4 +1,4 @@
-import APIError from "../utils/APIError.js";
+import APIError from "../../utils/APIError.js";
 
 
 export default class MuscleService {

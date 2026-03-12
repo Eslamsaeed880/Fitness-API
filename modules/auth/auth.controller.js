@@ -1,5 +1,5 @@
-import APIError from '../utils/APIError.js';
-import APIResponse from '../utils/APIResponse.js';
+import APIError from '../../utils/APIError.js';
+import APIResponse from '../../utils/APIResponse.js';
 import AuthService from './auth.service.js';
 
 const authService = new AuthService();

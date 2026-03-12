@@ -1,6 +1,6 @@
 import User from "./user.model.js";
-import APIResponse from "../utils/APIResponse.js";
-import APIError from "../utils/APIError.js";
+import APIResponse from "../../utils/APIResponse.js";
+import APIError from "../../utils/APIError.js";
 import UserService from "./user.service.js";
 
 const userService = new UserService(User);

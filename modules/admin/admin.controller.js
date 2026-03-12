@@ -1,9 +1,9 @@
 import User from '../users/user.model.js';
 // import Exercise from '../models/exercise.model.js';
-import Post from '../models/post.model.js';
+import Post from '../../models/post.model.js';
 import Muscle from '../muscles/muscle.model.js';
-import APIError from '../utils/APIError.js';
-import APIResponse from '../utils/APIResponse.js';
+import APIError from '../../utils/APIError.js';
+import APIResponse from '../../utils/APIResponse.js';
 import UserService from '../users/user.service.js';
 import MuscleService from '../muscles/muscle.service.js';
 import AdminService from './admin.service.js';

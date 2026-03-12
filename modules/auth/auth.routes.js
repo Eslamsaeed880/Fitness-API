@@ -1,4 +1,4 @@
-import { upload } from "../middleware/multer.js";
+import { upload } from "../../middleware/multer.js";
 import express from 'express';
 import { 
     signUp, 
@@ -9,7 +9,7 @@ import {
     getGoogleAuthUrl,
     googleLoginCallback,
 } from "./auth.controller.js";
-import isAuth from "../middleware/isAuth.js";
+import isAuth from "../../middleware/isAuth.js";
 import passport from "passport";
 
 const router = express.Router();
