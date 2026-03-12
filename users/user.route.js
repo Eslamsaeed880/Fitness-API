@@ -7,6 +7,6 @@ router.get('/', getAllUsers);
 
 router.get('/:id', getUserById);
 
-// router.put('/:id', );
+// router.put('/:id', deleteUser);
 
 export default router;

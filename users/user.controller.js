@@ -38,6 +38,10 @@ export const getUserById = async (req, res) => {
         const userService = new UserService(User);
         const user = await userService.getUserById(userId);
 
+        if (!user) {
+            return res.status(404).json(new APIResponse(404, null, 'User not found'));
+        }
+        
         res.status(200).json(new APIResponse(200, { user }, 'User fetched successfully'));
 
     } catch (err) {
