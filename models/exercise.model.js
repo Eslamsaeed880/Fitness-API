@@ -20,10 +20,10 @@ const exerciseSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    equipment: {
+    equipments: [{
         type: String,
-        trim: true,
-    },
+        trim: true
+    }],
     movementType: {
         type: String,
         enum: ["compound", "isolation"],
@@ -51,7 +51,7 @@ const exerciseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-exerciseSchema.index({ name: 1, equipment: 1 }, { unique: true });
+exerciseSchema.index({ name: 1 }, { unique: true });
 
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 
