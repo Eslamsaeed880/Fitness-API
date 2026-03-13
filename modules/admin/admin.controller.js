@@ -215,14 +215,10 @@ export const getAllExercises = async (req, res) => {
 // @Access: Admin only
 export const getExerciseById = async (req, res) => {
     try {
-        const exercise = await Exercise.findById(req.params.id)
-            .populate('muscleGroup');
-
-        if (exercise) {
-            res.status(200).json(new APIResponse(200, exercise, 'Exercise retrieved successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'Exercise not found.'));
-        }
+        const exerciseId = req.params.id;
+        const exercise = await adminService.getExerciseById(exerciseId);
+        
+        res.status(200).json(new APIResponse(200, { exercise }, 'Exercise retrieved successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
@@ -263,13 +259,10 @@ export const updateExercise = async (req, res) => {
 // @Access: Admin only
 export const deleteExercise = async (req, res) => {
     try {
-        const exercise = await Exercise.findByIdAndDelete(req.params.id);
+        const exerciseId = req.params.id;
+        const exercise = await adminService.deleteExercise(exerciseId);
 
-        if (exercise) {
-            res.status(200).json(new APIResponse(200, null, 'Exercise deleted successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'Exercise not found.'));
-        }
+        res.status(200).json(new APIResponse(200, exercise, 'Exercise deleted successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
