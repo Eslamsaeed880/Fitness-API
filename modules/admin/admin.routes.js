@@ -19,6 +19,7 @@ import {
     getPostsByUser,
     deletePost,
 } from './admin.controller.js';
+import { upload } from '../../middleware/multer.js';
 
 const router = express.Router();
 
@@ -40,25 +41,15 @@ router.put('/muscles/:id', isAdmin, updateMuscle);
 
 router.delete('/muscles/:id', isAdmin, deleteMuscle);
 
-router.get('/equipments', isAdmin);
+router.get('/exercises', isAdmin, getAllExercises);
 
-router.get('/equipments/:id', isAdmin);
+router.get('/exercises/:id', isAdmin, getExerciseById);
 
-router.post('/equipments', isAdmin);
+router.put('/exercises/:id', isAdmin, upload.single('media'), updateExercise);
 
-router.put('/equipments/:id', isAdmin);
+router.post('/exercises', isAdmin, upload.single('media'), createExercise);
 
-router.delete('/equipments/:id', isAdmin);
-
-// router.get('/exercises', isAdmin, getAllExercises);
-
-// router.get('/exercises/:id', isAdmin, getExerciseById);
-
-// router.put('/exercises/:id', isAdmin, updateExercise);
-
-// router.post('/exercises', isAdmin, createExercise);
-
-// router.delete('/exercises/:id', isAdmin, deleteExercise);
+router.delete('/exercises/:id', isAdmin, deleteExercise);
 
 // router.get('/posts', isAdmin, getPosts);
 

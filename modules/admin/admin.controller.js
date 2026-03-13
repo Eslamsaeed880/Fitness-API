@@ -2,13 +2,15 @@ import User from '../users/user.model.js';
 // import Exercise from '../models/exercise.model.js';
 import Post from '../../models/post.model.js';
 import Muscle from '../muscles/muscle.model.js';
+import Exercise from '../exercises/exercise.model.js';
 import APIError from '../../utils/APIError.js';
 import APIResponse from '../../utils/APIResponse.js';
 import UserService from '../users/user.service.js';
 import MuscleService from '../muscles/muscle.service.js';
+import ExerciseService from '../exercises/exercise.service.js';
 import AdminService from './admin.service.js';
 
-const adminService = new AdminService(new UserService(User), new MuscleService(Muscle));
+const adminService = new AdminService(new UserService(User), new MuscleService(Muscle), new ExerciseService(Exercise, new MuscleService(Muscle)));
 
 // @Desc: Get all users with pagination, search, and sorting
 // @Route: /api/v1/admin/users?page=1&limit=10&search=keyword&sort=asc
@@ -160,27 +162,42 @@ export const deleteMuscle = async (req, res) => {
     }
 }
 
-
+// @Desc: Create new exercise
+// @Route: /api/v1/admin/exercises
+// @Access: Admin only
 export const createExercise = async (req, res) => {
     try {
-        const { name, description, muscleGroup, videoUrl } = req.body;
-        const userId = req.user._id;
+        const { 
+            name, 
+            description, 
+            primaryMuscle, 
+            secondaryMuscle, 
+            equipments, 
+            movementType 
+        } = req.body;
+        const userId = req.user.id;
 
-        const newExercise = new Exercise({
-            name,
-            description,
-            muscleGroup,
-            videoUrl,
-            createdBy: userId
-        });
-        await newExercise.save();
-        res.status(201).json(new APIResponse(201, { exercise: newExercise }, 'Exercise created successfully.'));
+        const exercise = await adminService.createExercise({ 
+            name, 
+            description, 
+            primaryMuscle, 
+            secondaryMuscle, 
+            equipments,
+            movementType,
+            createdBy: userId, 
+        }, 
+        req.file);
+
+        res.status(201).json(new APIResponse(201, { exercise }, 'Exercise created successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
+// @Desc: Get all exercises with pagination, search, and sorting
+// @Route: /api/v1/admin/exercises?search=keyword&primaryMuscle=muscleName&sort=name
+// @Access: Admin only
 export const getAllExercises = async (req, res) => {
     try {
         const { search, primaryMuscle, sort = 'name' } = req.query;
@@ -213,6 +230,9 @@ export const getAllExercises = async (req, res) => {
     }
 };
 
+// @Desc: Get exercise by ID
+// @Route: /api/v1/admin/exercises/:id
+// @Access: Admin only
 export const getExerciseById = async (req, res) => {
     try {
         const exercise = await Exercise.findById(req.params.id)
@@ -228,30 +248,39 @@ export const getExerciseById = async (req, res) => {
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
-
+// @Desc: Update exercise by ID
+// @Route: /api/v1/admin/exercises/:id
+// @Access: Admin only
 export const updateExercise = async (req, res) => {
     try {
-        const { name, description, muscleGroup } = req.body;
-        const { videoUrl } = req.body || '';
-        const exercise = await Exercise.findById(req.params.id);
+        const { 
+            name, 
+            description,
+            primaryMuscle,
+            secondaryMuscle,
+            equipments,
+            movementType
+        } = req.body;
 
-        if (exercise) {
-            exercise.name = name;
-            exercise.description = description;
-            exercise.muscleGroup = muscleGroup;
-            exercise.videoUrl = videoUrl;
+        const exercise = await adminService.updateExercise(req.params.id, { 
+            name, 
+            description,
+            primaryMuscle,
+            secondaryMuscle,
+            equipments,
+            movementType
+        }, req.file);
 
-            await exercise.save();
-            res.status(200).json(new APIResponse(200, { exercise }, 'Exercise updated successfully.'));
-        } else {
-            res.status(404).json(new APIError(404, 'Exercise not found.'));
-        }
+        res.status(200).json(new APIResponse(200, exercise, 'Exercise updated successfully.'));
     } catch (err) {
         const status = err.statusCode || 500;
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
 
+// @Desc: Delete exercise by ID
+// @Route: /api/v1/admin/exercises/:id
+// @Access: Admin only
 export const deleteExercise = async (req, res) => {
     try {
         const exercise = await Exercise.findByIdAndDelete(req.params.id);

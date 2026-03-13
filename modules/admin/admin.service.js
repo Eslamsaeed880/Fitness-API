@@ -1,7 +1,8 @@
 export default class AdminService {
-    constructor (UserService, MuscleService) {
+    constructor (UserService, MuscleService, ExerciseService) {
         this.userService = UserService;
         this.muscleService = MuscleService;
+        this.exerciseService = ExerciseService;
     }
 
     async getAllUsers(page, limit, search, sortBy, sortOrder) {
@@ -41,5 +42,28 @@ export default class AdminService {
     async deleteMuscle(muscleId) {
         const muscle = await this.muscleService.deleteMuscle(muscleId);
         return muscle;
+    }
+
+    async getAllExercises(page, limit, search, sortBy, sortOrder) {
+        return await this.exerciseService.getAllExercises(page, limit, search, sortBy, sortOrder);
+    }
+
+    async getExerciseById(exerciseId) {
+        return await this.exerciseService.getExerciseById(exerciseId);
+    }
+
+    async createExercise(exerciseData, file) {
+        const exercise = await this.exerciseService.createExercise(exerciseData, file);
+        return exercise;
+    }
+
+    async updateExercise(exerciseId, exerciseData, file) {
+        const exercise = await this.exerciseService.updateExercise(exerciseId, exerciseData, file);
+        return exercise;
+    }
+
+    async deleteExercise(exerciseId) {
+        const exercise = await this.exerciseService.deleteExercise(exerciseId);
+        return exercise;
     }
 }
