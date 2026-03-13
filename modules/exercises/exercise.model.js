@@ -5,6 +5,7 @@ const exerciseSchema = new mongoose.Schema({
         type: String, 
         required: true, 
         unique: true,
+        lowercase: true,
         trim: true
     },
     description: {
@@ -16,7 +17,7 @@ const exerciseSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    secondaryMuscles: {
+    secondaryMuscle: {
         type: String,
         trim: true
     },
@@ -31,11 +32,6 @@ const exerciseSchema = new mongoose.Schema({
         trim: true
     },
     media: {
-        mediaType: {
-            type: String,
-            enum: ['image', 'video'],
-            required: true
-        },
         publicId: {
             type: String,
             required: true

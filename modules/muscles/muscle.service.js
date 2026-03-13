@@ -32,6 +32,12 @@ export default class MuscleService {
         return muscle;
     }
 
+    async getMuscleByName(muscleName) {
+        const muscle = await this.Muscle.findOne({ name: muscleName });
+        
+        return muscle;
+    }
+
     async createMuscle(muscleData) {
         const muscle = new this.Muscle(muscleData);
         await muscle.save();
