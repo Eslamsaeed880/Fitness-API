@@ -14,13 +14,7 @@ import passport from "passport";
 
 const router = express.Router();
 
-router.post("/signup", 
-    upload.fields([
-        { name: 'avatar', maxCount: 1 },
-        { name: 'cover', maxCount: 1 }
-    ]), 
-    signUp
-);
+router.post("/signup", signUp);
 
 router.post("/login", login);
 

@@ -1,9 +1,10 @@
 import APIError from "../../utils/APIError.js";
-import { uploadToCloudinary } from "../../utils/cloudinary.js";
+import MediaService from "../../infrastructure/media/media.service.js";
 
 export default class UserService {
     constructor(userModel) {
         this.User = userModel;
+        this.mediaService = new MediaService();
     }
 
     async getAllUsers(page, limit, search, sortBy, sortOrder) {
@@ -90,12 +91,12 @@ export default class UserService {
             return user;
         }
     
-        const uploaded = await uploadToCloudinary(file.path, 'profile_pictures');
-        if(!uploaded || !uploaded.url || !uploaded.public_id) {
+        const uploaded = await this.mediaService.uploadToCloudinary(file.path, 'profile_pictures');
+        if(!uploaded || !uploaded.url || !uploaded.publicId) {
             throw new APIError(500, "Failed to upload profile picture");
         }
 
-        user.profilePicture.publicId = uploaded.public_id;
+        user.profilePicture.publicId = uploaded.publicId;
         user.profilePicture.url = uploaded.url;
         await user.save();
         return user;
@@ -122,12 +123,12 @@ export default class UserService {
             return user;
         }
     
-        const uploaded = await uploadToCloudinary(file.path, 'cover_images');
-        if(!uploaded || !uploaded.url || !uploaded.public_id) {
+        const uploaded = await this.mediaService.uploadToCloudinary(file.path, 'cover_images');
+        if(!uploaded || !uploaded.url || !uploaded.publicId) {
             throw new APIError(500, "Failed to upload cover image");
         }
 
-        user.coverImage.publicId = uploaded.public_id;
+        user.coverImage.publicId = uploaded.publicId;
         user.coverImage.url = uploaded.url;
         await user.save();
         return user;
