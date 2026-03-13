@@ -42,7 +42,8 @@ export default class ExerciseService {
             exercises: await this.Exercise.find({ name: { $regex: searchRegex } })
                 .skip(skip)
                 .limit(limit)
-                .sort(sort),
+                .sort(sort)
+                .select('-__v -createdAt -updatedAt -movementType -equipments -secondaryMuscle'),
             page,
             totalResults: await this.Exercise.countDocuments({ name: { $regex: searchRegex } }),
             totalPages: Math.ceil(await this.Exercise.countDocuments({ name: { $regex: searchRegex } }) / limit)

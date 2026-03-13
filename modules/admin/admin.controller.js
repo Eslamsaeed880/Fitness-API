@@ -196,32 +196,12 @@ export const createExercise = async (req, res) => {
 };
 
 // @Desc: Get all exercises with pagination, search, and sorting
-// @Route: /api/v1/admin/exercises?search=keyword&primaryMuscle=muscleName&sort=name
+// @Route: /api/v1/admin/exercises?page=1&limit=10&search=keyword&sortBy=name&sortOrder=asc
 // @Access: Admin only
 export const getAllExercises = async (req, res) => {
     try {
-        const { search, primaryMuscle, sort = 'name' } = req.query;
-
-        let filter = {};
-
-        if (search) {
-            filter.$text = { $search: search };
-        }
-
-        if (primaryMuscle) {
-            const muscle = await Muscle.findOne({ 
-                $text: { $search: primaryMuscle }
-            });
-            if (muscle) {
-                filter.primaryMuscle = muscle._id;
-            }
-        }
-
-        const sortOrder = sort === 'name' ? { name: 1 } : { name: -1 };
-
-        const exercises = await Exercise.find(filter)
-            .populate('muscleGroup')
-            .sort(sortOrder);
+        const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+        const exercises = await adminService.getAllExercises(page, limit, search, sortBy, sortOrder);
 
         res.status(200).json(new APIResponse(200, exercises, 'Exercises retrieved successfully.'));
     } catch (err) {
