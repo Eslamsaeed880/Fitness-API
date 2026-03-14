@@ -3,7 +3,8 @@ import isAuth from '../../middleware/isAuth.js';
 import { 
     createExerciseRequest,
     getExerciseRequestById,
-    getMyExerciseRequests
+    getMyExerciseRequests,
+    deleteExerciseRequest
  } from './exerciseRequest.controller.js';
 import { upload } from '../../middleware/multer.js';
 
@@ -15,6 +16,8 @@ router.get('/:id', isAuth, getExerciseRequestById);
 
 router.post('/', isAuth, upload.single('media'), createExerciseRequest);
 
-router.delete('/:id', isAuth);
+router.put('/:id', isAuth);
+
+router.delete('/:id', isAuth, deleteExerciseRequest);
 
 export default router;

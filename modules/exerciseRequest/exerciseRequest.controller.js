@@ -77,3 +77,18 @@ export const getExerciseRequestById = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch exercise request'));
     }
 }
+
+// @Desc: Delete an exercise request
+// @Route: DELETE /api/exercise-requests/:id
+// @Access: Private
+export const deleteExerciseRequest = async (req, res) => {
+    try {
+        const exerciseRequestId = req.params.id;
+        await exercieseRequestService.deleteExerciseRequest(exerciseRequestId);
+
+        res.status(200).json(new APIResponse(200, {}, 'Exercise request deleted successfully'));
+    } catch (err) {
+        console.error('Error deleting exercise request:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to delete exercise request'));
+    }
+}
