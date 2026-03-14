@@ -123,6 +123,30 @@ export default class ExerciseRequestService {
         return exerciseRequest;
     }
 
+    async updateExerciseRequestStatus(id, status) {
+        const exerciseRequest = await this.ExerciseRequest.findByIdAndUpdate(id, { status }, { new: true });
+        
+        if (!exerciseRequest) {
+            throw new APIError(404, 'Exercise request not found');
+        }
+
+        if (exerciseRequest.status === 'approved') {
+            const exerciseData = {
+                name: exerciseRequest.name,
+                description: exerciseRequest.description,
+                primaryMuscle: exerciseRequest.primaryMuscle,
+                secondaryMuscles: exerciseRequest.secondaryMuscles,
+                equipments: exerciseRequest.equipments,
+                movementType: exerciseRequest.movementType,
+                media: exerciseRequest.media
+            };
+
+            await this.exerciseService.acceptExerciseRequest(exerciseData);
+        }
+
+        return exerciseRequest;
+    }
+
     async deleteExerciseRequest(id) {
         const exerciseRequest = await this.ExerciseRequest.findByIdAndDelete(id);
 

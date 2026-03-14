@@ -10,6 +10,10 @@ import {
     updateExercise,
     deleteExercise,
     createExercise,
+    getExerciseRequests,
+    getExerciseRequestById,
+    updateExerciseRequestStatus,
+    deleteExerciseRequest,
     getAllMuscles,
     createMuscle,
     getMuscleById,
@@ -50,6 +54,14 @@ router.put('/exercises/:id', isAdmin, upload.single('media'), updateExercise);
 router.post('/exercises', isAdmin, upload.single('media'), createExercise);
 
 router.delete('/exercises/:id', isAdmin, deleteExercise);
+
+router.get('/exercise-requests', isAdmin, getExerciseRequests);
+
+router.get('/exercise-requests/:id', isAdmin, getExerciseRequestById);
+
+router.patch('/exercise-requests/:id', isAdmin, updateExerciseRequestStatus);
+
+router.delete('/exercise-requests/:id', isAdmin, deleteExerciseRequest);
 
 // router.get('/posts', isAdmin, getPosts);
 

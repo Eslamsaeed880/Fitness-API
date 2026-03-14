@@ -9,9 +9,23 @@ import UserService from '../users/user.service.js';
 import MuscleService from '../muscles/muscle.service.js';
 import ExerciseService from '../exercises/exercise.service.js';
 import AdminService from './admin.service.js';
+import ExerciseRequest from '../exerciseRequest/exerciseRequest.model.js';
+import ExerciseRequestService from '../exerciseRequest/exerciseRequest.service.js';
 
-const adminService = new AdminService(new UserService(User), new MuscleService(Muscle), new ExerciseService(Exercise, new MuscleService(Muscle)));
 
+const adminService = new AdminService(
+        new UserService(User), 
+        new MuscleService(Muscle), 
+        new ExerciseService(Exercise, new MuscleService(Muscle)),
+        new ExerciseRequestService(
+            ExerciseRequest, 
+            new ExerciseService(Exercise, new MuscleService(Muscle)),
+            null,
+            null,
+            null
+        )
+    );
+    
 // @Desc: Get all users with pagination, search, and sorting
 // @Route: /api/v1/admin/users?page=1&limit=10&search=keyword&sort=asc
 // @Access: Admin only
@@ -268,6 +282,72 @@ export const deleteExercise = async (req, res) => {
         res.status(status).json(new APIError(status, err.message || 'Server error.'));
     }
 };
+
+// @Desc: Get exercise requests with pagination, search, and filtering by status
+// @Route: /api/v1/admin/exercise-requests?page=1&limit=10&status=pending&search=keyword
+// @Access: Admin only
+export const getExerciseRequests = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, status, search = '' } = req.query;
+        const exerciseRequests = await adminService.getExerciseRequests(page, limit, status, search);
+
+        res.status(200).json(new APIResponse(200, exerciseRequests, 'Exercise requests retrieved successfully'));
+    } catch (err) {
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
+
+// @Desc: Get exercise request by ID
+// @Route: /api/v1/admin/exercise-requests/:id
+// @Access: Admin only
+export const getExerciseRequestById = async (req, res) => {
+    try {
+        const exerciseRequestId = req.params.id;
+        const exerciseRequest = await adminService.getExerciseRequestById(exerciseRequestId);
+
+        res.status(200).json(new APIResponse(200, exerciseRequest, 'Exercise request retrieved successfully'));
+    } catch (err) {
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
+
+// @Desc: Delete exercise request by ID
+// @Route: /api/v1/admin/exercise-requests/:id
+// @Access: Admin only
+export const deleteExerciseRequest = async (req, res) => {
+    try {
+        const exerciseRequestId = req.params.id;
+        await adminService.deleteExerciseRequest(exerciseRequestId);
+
+        res.status(200).json(new APIResponse(200, {}, 'Exercise request deleted successfully'));
+    } catch (err) {
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
+
+// @Desc: Update exercise request by ID (e.g. approve or reject)
+// @Route: /api/v1/admin/exercise-requests/:id
+// @Access: Admin only
+export const updateExerciseRequestStatus = async (req, res) => {
+    try {
+        const exerciseRequestId = req.params.id;
+        const { status } = req.body; // expected values: 'approved' or 'rejected'
+
+        if (!['approved', 'rejected'].includes(status)) {
+            return res.status(400).json(new APIError(400, 'Invalid status value. Must be "approved" or "rejected".'));
+        }
+
+        const exerciseRequest = await adminService.updateExerciseRequestStatus(exerciseRequestId, status);
+
+         res.status(200).json(new APIResponse(200, exerciseRequest, `Exercise request ${status} successfully`));
+    } catch (err) {
+        const status = err.statusCode || 500;
+        res.status(status).json(new APIError(status, err.message || 'Server error.'));
+    }
+}
 
 export const getPostsByUser = async (req, res) => {
     try {

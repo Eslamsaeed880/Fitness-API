@@ -130,7 +130,12 @@ export default class ExerciseService {
 
         const exercise = await new this.Exercise(exerciseData);
         await exercise.save();
-        
+
+        return exercise;
+    }
+
+    async getExerciseByName(name) {
+        const exercise = await this.Exercise.findOne({ name });
         return exercise;
     }
 
