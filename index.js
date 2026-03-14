@@ -6,6 +6,7 @@ import authRoutes from './modules/auth/auth.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
 import userRoutes from './modules/users/user.route.js';
 import exerciseRoutes from './modules/exercises/exercise.routes.js';
+import exerciseRequestRoutes from './modules/exerciseRequest/exerciseRequest.routes.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
@@ -30,11 +31,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/exercises', exerciseRoutes);
+app.use('/api/v1/exercise-requests', exerciseRequestRoutes);
 // app.use('/api/v1/workout', workoutRoutes);
 // app.use('/api/v1/workout-session', workoutSessionRoutes);
 // app.use('/api/v1/posts', postRoutes);
 // app.use('/api/v1/following-details', followingRoutes);
-
 app.use((req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
