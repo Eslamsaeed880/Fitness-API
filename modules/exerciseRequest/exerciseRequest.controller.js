@@ -62,3 +62,18 @@ export const getMyExerciseRequests = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch exercise requests'));
     }
 }
+
+// @Desc: Get exercise request by ID
+// @Route: GET /api/exercise-requests/:id
+// @Access: Private
+export const getExerciseRequestById = async (req, res) => {
+    try {
+        const exerciseRequestId = req.params.id;
+        const exerciseRequest = await exercieseRequestService.getExerciseRequestById(exerciseRequestId);
+
+        res.status(200).json(new APIResponse(200, 'Exercise request retrieved successfully', exerciseRequest));
+    } catch (err) {
+        console.error('Error fetching exercise request:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch exercise request'));
+    }
+}
