@@ -84,27 +84,42 @@ export default class ExerciseRequestService {
         return exerciseRequest;
     }
 
-    async updateExerciseRequest(id, updateData) {
-        const exerciseRequest = await this.ExerciseRequest.findByIdAndUpdate(id, updateData, { new: true });
+    async updateExerciseRequest(id, exerciseData, file) {
+        exerciseData.equipments = this.exerciseService.toEquipmentsArray(exerciseData.equipments) || [];
 
-        if (exerciseRequest.status === 'approved') {
-            const exerciseData = {
-                name: exerciseRequest.name,
-                description: exerciseRequest.description,
-                primaryMuscle: exerciseRequest.primaryMuscle,
-                secondaryMuscles: exerciseRequest.secondaryMuscles,
-                equipments: exerciseRequest.equipments,
-                movementType: exerciseRequest.movementType,
-                media: exerciseRequest.media
-            };
+        if(exerciseData.primaryMuscle) {
+            const primaryMuscle = await this.muscleService.getMuscleByName(exerciseData.primaryMuscle);
 
-            await this.exerciseService.createExercise(exerciseData);
+            if (!primaryMuscle) {
+                throw new APIError(400, 'Primary muscle group not found.');
+            }
         }
+
+        if(exerciseData.secondaryMuscle) {
+            const secondaryMsucle = await this.muscleService.getMuscleByName(exerciseData.secondaryMuscle);
+
+            if (!secondaryMsucle) {
+                throw new APIError(400, 'Secondary muscle not found.');
+            }
+        }
+
+        const exerciseRequest = await this.ExerciseRequest.findByIdAndUpdate(id, exerciseData, { new: true });
 
         if (!exerciseRequest) {
             throw new APIError(404, 'Exercise request not found');
         }
+        
+        if (file) {
+            const uploaded = await this.mediaService.uploadToCloudinary(file.path, 'media');
+            exerciseRequest.media = {
+                url: uploaded.url,
+                publicId: uploaded.publicId,
+            };
 
+            await exerciseRequest.save();
+        }
+        
+        
         return exerciseRequest;
     }
 

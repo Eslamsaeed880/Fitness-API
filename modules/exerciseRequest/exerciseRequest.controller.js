@@ -92,3 +92,27 @@ export const deleteExerciseRequest = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to delete exercise request'));
     }
 }
+
+// @Desc: Update an exercise request
+// @Route: PUT /api/exercise-requests/:id
+// @Access: Private
+export const updateExerciseRequest = async (req, res) => {
+    try {
+        const exerciseRequestId = req.params.id;
+        const { name, description, primaryMuscle, secondaryMuscle, equipments, movementType } = req.body;
+
+        const exerciseRequest = await exercieseRequestService.updateExerciseRequest(exerciseRequestId, {
+            name,
+            description,
+            primaryMuscle,
+            secondaryMuscle,
+            equipments,
+            movementType
+        }, req.file);
+
+        res.status(200).json(new APIResponse(200, { exerciseRequest }, 'Exercise request updated successfully'));
+    } catch (err) {
+        console.error('Error updating exercise request:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to update exercise request'));
+    }
+}

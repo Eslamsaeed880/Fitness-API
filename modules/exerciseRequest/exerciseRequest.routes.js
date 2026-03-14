@@ -4,7 +4,8 @@ import {
     createExerciseRequest,
     getExerciseRequestById,
     getMyExerciseRequests,
-    deleteExerciseRequest
+    deleteExerciseRequest,
+    updateExerciseRequest
  } from './exerciseRequest.controller.js';
 import { upload } from '../../middleware/multer.js';
 
@@ -16,7 +17,7 @@ router.get('/:id', isAuth, getExerciseRequestById);
 
 router.post('/', isAuth, upload.single('media'), createExerciseRequest);
 
-router.put('/:id', isAuth);
+router.put('/:id', isAuth, upload.single('media'), updateExerciseRequest);
 
 router.delete('/:id', isAuth, deleteExerciseRequest);
 

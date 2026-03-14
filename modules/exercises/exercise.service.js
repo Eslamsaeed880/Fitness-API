@@ -117,6 +117,23 @@ export default class ExerciseService {
         return exercise;
     }
 
+    async acceptExerciseRequest(exerciseRequest) {
+        const exerciseData = {
+            name: exerciseRequest.name,
+            description: exerciseRequest.description,
+            primaryMuscle: exerciseRequest.primaryMuscle,
+            secondaryMuscle: exerciseRequest.secondaryMuscle,
+            equipments: exerciseRequest.equipments,
+            movementType: exerciseRequest.movementType,
+            media: exerciseRequest.media
+        };
+
+        const exercise = await new this.Exercise(exerciseData);
+        await exercise.save();
+        
+        return exercise;
+    }
+
     async deleteExercise(exerciseId) {
         const exercise = await this.Exercise.findByIdAndDelete(exerciseId);
         if (!exercise) {
