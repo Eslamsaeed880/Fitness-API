@@ -1,11 +1,12 @@
 import APIError from "../../utils/APIError.js";
 
 export default class ExerciseRequestService {
-    constructor(ExerciseRequestModel, exerciseService, mediaService, muscleService) {
+    constructor(ExerciseRequestModel, exerciseService, mediaService, muscleService, userService) {
         this.ExerciseRequest = ExerciseRequestModel;
         this.exerciseService = exerciseService;
         this.mediaService = mediaService;
         this.muscleService = muscleService;
+        this.userService = userService;
     }
 
     async createExerciseRequest(exerciseData, file) {
@@ -39,8 +40,38 @@ export default class ExerciseRequestService {
         return exerciseRequest;
     }
 
-    async getExerciseRequests(filter = {}) {
-        return await this.ExerciseRequest.find(filter).populate('createdBy', 'username');
+    async getExerciseRequests(page = 1, limit = 10, status, search) {
+        const skip = (page - 1) * limit;
+        const filter = {};
+
+        if (status) {
+            filter.status = status;
+        }
+
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        return {
+            exerciseRequest: await this.ExerciseRequest.find(filter)
+            .populate('createdBy', 'username')
+            .skip(skip)
+            .limit(limit),
+            page,
+            totalResults: await this.ExerciseRequest.countDocuments(filter),
+            totalPages: Math.ceil(await this.ExerciseRequest.countDocuments(filter) / limit)
+        }
+    }
+
+    async getMyExerciseRequests(userId) {
+        return await this.ExerciseRequest
+            .find({ createdBy: userId })
+            .populate('createdBy', 'username')
+            .select('-__v -updatedAt -movementType -media -secondaryMuscle -equipments')
+            .sort({ createdAt: -1 });
     }
 
     async getExerciseRequestById(id) {

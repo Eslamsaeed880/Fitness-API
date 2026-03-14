@@ -1,11 +1,14 @@
 import express from 'express';
 import isAuth from '../../middleware/isAuth.js';
-import { createExerciseRequest } from './exerciseRequest.controller.js';
+import { 
+    createExerciseRequest,
+    getMyExerciseRequests
+ } from './exerciseRequest.controller.js';
 import { upload } from '../../middleware/multer.js';
 
 const router = express.Router();
 
-router.get('/', isAuth);
+router.get('/', isAuth, getMyExerciseRequests);
 
 router.get('/:id', isAuth);
 

@@ -5,14 +5,17 @@ import ExerciseRequestService from "./exerciseRequest.service.js";
 import ExerciseService from "../exercises/exercise.service.js";
 import MuscleService from "../muscles/muscle.service.js";
 import MediaService from "../../infrastructure/media/media.service.js";
+import UserService from "../users/user.service.js";
 import Exercise from "../exercises/exercise.model.js";
 import Muscle from "../muscles/muscle.model.js";
+import User from "../users/user.model.js";
 
 const exercieseRequestService = new ExerciseRequestService(
     ExerciseRequest, 
     new ExerciseService(Exercise, new MuscleService(), new MediaService()), 
     new MediaService(), 
-    new MuscleService(Muscle)
+    new MuscleService(Muscle),
+    new UserService(User)
 );
 
 // @Desc: Create a new exercise request
@@ -42,5 +45,20 @@ export const createExerciseRequest = async (req, res) => {
     } catch (err) {
         console.error('Error creating exercise request:', err);
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to create exercise request'));
+    }
+}
+
+// @Desc: Get all my exercise requests
+// @Route: GET /api/exercise-requests
+// @Access: Private
+export const getMyExerciseRequests = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const exerciseRequests = await exercieseRequestService.getMyExerciseRequests(userId);
+
+        res.status(200).json(new APIResponse(200, 'Exercise requests retrieved successfully', exerciseRequests));
+    } catch (err) {
+        console.error('Error fetching exercise requests:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch exercise requests'));
     }
 }
