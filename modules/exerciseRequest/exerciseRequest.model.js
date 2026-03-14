@@ -15,14 +15,14 @@ const exerciseRequestSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    secondaryMuscles: {
+    secondaryMuscle: {
         type: String,
         trim: true
     },
-    equipment: {
+    equipments: [{
         type: String,
         trim: true,
-    },
+    }],
     movementType: {
         type: String,
         enum: ["compound", "isolation"],
@@ -30,11 +30,6 @@ const exerciseRequestSchema = new mongoose.Schema({
         trim: true
     },
     media: {
-        mediaType: {
-            type: String,
-            enum: ['image', 'video'],
-            required: true
-        },
         publicId: {
             type: String,
             required: true
@@ -43,6 +38,11 @@ const exerciseRequestSchema = new mongoose.Schema({
             type: String,
             required: true
         },
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
