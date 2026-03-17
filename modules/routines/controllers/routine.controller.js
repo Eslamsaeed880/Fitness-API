@@ -64,3 +64,23 @@ export const updateRoutine = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to update routine'));
     }
 }
+
+// @Desc: Update routine exercises and sets
+// @Route: PUT /api/routines/:id/exercises
+// @Access: Private (only owner can update)
+export const updateRoutineExercises = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const routineId = req.params.id;
+        const exercisesData = req.body.exercises;
+
+        console.log('Received routine exercises update request:', exercisesData);
+
+        const updatedRoutine = await routineService.updateRoutineExercises(routineId, userId, exercisesData);
+
+        res.status(200).json(new APIResponse(200, updatedRoutine, 'Routine exercises updated successfully'));
+    } catch (err) {
+        console.error('Error updating routine exercises:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to update routine exercises'));
+    }
+}

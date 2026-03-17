@@ -124,4 +124,46 @@ export default class RoutineService {
 
         return routine;
     }
+
+    async updateRoutineExercises(routineId, userId, exercisesData) {
+        const routine = await this.Routine.findById(routineId);
+        
+        if (!routine) {
+            throw new APIError(404, 'Routine not found');
+        }
+
+        if (routine.userId.toString() !== userId.toString()) {
+            throw new APIError(403, 'Access denied');
+        }
+
+        // For simplicity, delete existing exercises and sets, then re-create
+        await Promise.all([
+            this.RoutineExercise.deleteMany({ routineId }),
+            this.RoutineExerciseSet.deleteMany({ routineExerciseId: { $in: exercisesData.map(ex => ex._id) } })
+        ]);
+
+        // Re-create exercises and sets
+        const routineExerciseSetDocs = exercisesData.map((exerciseData) => {
+            const _id = new mongoose.Types.ObjectId();
+
+            return {
+                _id,
+                sets: Array.isArray(exerciseData.sets) ? exerciseData.sets : []
+            };
+        });
+
+        const routineExerciseDocs = exercisesData.map((exerciseData, index) => ({
+            routineId,
+            exerciseId: exerciseData.exerciseId,
+            orderIndex: index,
+            setsId: routineExerciseSetDocs[index]._id
+        }));
+
+        await Promise.all([
+            this.RoutineExerciseSet.insertMany(routineExerciseSetDocs),
+            this.RoutineExercise.insertMany(routineExerciseDocs)
+        ]);
+
+        return await this.getRoutineById(routineId, userId);
+    }
 }
