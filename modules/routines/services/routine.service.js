@@ -1,4 +1,5 @@
 import APIError from "../../../utils/APIError.js";
+import mongoose from "mongoose";
 
 export default class RoutineService {
     constructor(RoutineModel, routineExerciseModel, routineExerciseSetModel, exerciseService) {
@@ -9,44 +10,98 @@ export default class RoutineService {
     }
 
     async createRoutine(userId, routineData, exercisesData) {
-        const routine = new this.Routine({
-            userId,
-            name: routineData.name,
-            description: routineData.description,
-            isPublic: routineData.isPublic
-        });
+        const session = await mongoose.startSession();
 
-        await routine.save();
+        try {
+            session.startTransaction();
 
-        for (const exerciseData of exercisesData) {
-            const routineExercise = new this.RoutineExercise({
-                routineId: routine._id,
+            // Create routine
+            const routine = await this.Routine.create([{
+                userId,
+                name: routineData.name,
+                description: routineData.description,
+                isPublic: routineData.isPublic
+            }], { session });
+
+            const routineId = routine[0]._id;
+
+            // Pre-generate set IDs (IMPORTANT)
+            const routineExerciseSetDocs = exercisesData.map((exerciseData) => {
+                const _id = new mongoose.Types.ObjectId();
+
+                return {
+                    _id,
+                    sets: Array.isArray(exerciseData.sets) ? exerciseData.sets : []
+                };
+            });
+
+            // Build exercises using pre-generated IDs
+            const routineExerciseDocs = exercisesData.map((exerciseData, index) => ({
+                routineId,
                 exerciseId: exerciseData.exerciseId,
-                orderIndex: exerciseData.orderIndex
-            });
+                orderIndex: index, // safer than trusting client
+                setsId: routineExerciseSetDocs[index]._id
+            }));
 
-            const routineExerciseSet = new this.RoutineExerciseSet({
-                sets: exerciseData.sets
-            });
+            // Insert BOTH in parallel
+            await Promise.all([
+                this.RoutineExerciseSet.insertMany(routineExerciseSetDocs, { session }),
+                this.RoutineExercise.insertMany(routineExerciseDocs, { session })
+            ]);
 
-            await routineExerciseSet.save();
+            await session.commitTransaction();
 
-            routineExercise.setsId = routineExerciseSet._id;
-            await routineExercise.save();
+            return {
+                routineId,
+                userId,
+                name: routineData.name,
+                description: routineData.description,
+                isPublic: routineData.isPublic,
+                exercises: exercisesData.map((ex, index) => ({
+                    exerciseId: ex.exerciseId,
+                    orderIndex: index,
+                    setsId: routineExerciseSetDocs[index]._id,
+                    sets: ex.sets
+                }))
+            };
+
+        } catch (error) {
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
+        }
+    }
+
+    async getRoutineById(routineId, userId) {
+        const [routine, exercises] = await Promise.all([
+            this.Routine.findById(routineId),
+            this.RoutineExercise.find({ routineId })
+                .populate({
+                    path: 'exerciseId',
+                    select: 'name description primaryMuscle equipment media movementType`'
+                })
+                .populate('setsId')
+                .select('-__v -createdAt -updatedAt')
+                .sort({ orderIndex: 1 })
+        ]);
+
+        if (!routine) {
+            throw new APIError(404, 'Routine not found');
+        }
+
+        if (!routine.isPublic && routine.userId.toString() !== userId.toString()) {
+            throw new APIError(403, 'Access denied');
         }
 
         const structuredRoutine = {
-            userId,
-            routineId: routine._id,
+            _id: routine._id,
+            userId: routine.userId,
             name: routine.name,
             description: routine.description,
-            isPublic: routine.isPublic,
-            exercises: exercisesData.map(ex => ({
-                exerciseId: ex.exerciseId,
-                orderIndex: ex.orderIndex,
-                sets: ex.sets
-            }))
-        }
+            exercises   
+        };
+
         return structuredRoutine;
     }
 }

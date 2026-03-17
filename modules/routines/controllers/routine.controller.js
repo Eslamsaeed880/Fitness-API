@@ -25,3 +25,24 @@ export const createRoutine = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to create routine'));
     }
 }
+
+// @Desc: Get routine by ID
+// @Route: GET /api/routines/:id
+// @Access: Private (only owner can access)
+export const getRoutineById = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const routineId = req.params.id;
+
+        const routine = await routineService.getRoutineById(routineId, userId);
+
+        if (!routine) {
+            return res.status(404).json(new APIResponse(404, null, 'Routine not found'));
+        }
+
+        res.status(200).json(new APIResponse(200, routine, 'Routine fetched successfully'));
+    } catch (err) {
+        console.error('Error fetching routine:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch routine'));
+    }
+}

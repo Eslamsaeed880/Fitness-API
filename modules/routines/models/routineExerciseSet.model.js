@@ -8,11 +8,6 @@ const RoutineExerciseSetSchema = new mongoose.Schema({
                 enum: ['normal', 'failure', 'warmup'],
                 default: 'normal'
             },
-            setIndex: {
-                type: Number,
-                min: 0,
-                required: true
-            },
             targetReps: {
                 type: Number,
                 min: 1,
