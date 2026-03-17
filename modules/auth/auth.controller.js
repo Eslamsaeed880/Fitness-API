@@ -16,7 +16,7 @@ export const signUp = async (req, res, next) => {
     try {
         const { fullName, username, email, password } = req.body;
 
-        const newUser = await authService.signup(fullName, username, email, password);
+        const { user, token } = await authService.signup(fullName, username, email, password);
 
         /* For welcome email, we can enqueue background jobs like this:
 
@@ -28,7 +28,7 @@ export const signUp = async (req, res, next) => {
         });
         */
 
-        const response = new APIResponse(201, { createdUser: newUser }, "User registered successfully");
+        const response = new APIResponse(201, { user, token }, "User registered successfully");
         res.status(response.statusCode).json(response);
 
     } catch (error) {

@@ -37,7 +37,9 @@ export default class AuthService {
         const user = new User({ fullName, username, email, password });
         await user.save();
 
-        return user;
+        const token = user.generateToken();
+
+        return { user, token };
     }
 
     async resetPassword(email) {

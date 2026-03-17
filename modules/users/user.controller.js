@@ -13,16 +13,7 @@ export const getAllUsers = async (req, res) => {
         const { page = 1, limit = 10, search = '', sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
         const users = await userService.getAllUsers(parseInt(page), parseInt(limit), search, sortBy, sortOrder);
 
-        const totalResults = await User.countDocuments({
-            $or: [
-                { username: { $regex: new RegExp(search, 'i') } },
-                { fullName: { $regex: new RegExp(search, 'i') } },
-                { email: { $regex: new RegExp(search, 'i') } }
-            ]
-        });
-        const totalPages = Math.ceil(totalResults / limit);
-
-        res.status(200).json(new APIResponse(200, { users, page, totalPages, totalResults }, 'Users fetched successfully'));
+        res.status(200).json(new APIResponse(200, users, 'Users fetched successfully'));
 
     } catch (err) {
         console.error('Error fetching users:', err);

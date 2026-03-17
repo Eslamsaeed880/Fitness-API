@@ -57,9 +57,9 @@ export default class ExerciseRequestService {
 
         return {
             exerciseRequest: await this.ExerciseRequest.find(filter)
-            .populate('createdBy', 'username')
-            .skip(skip)
-            .limit(limit),
+                .populate('createdBy', 'username')
+                .skip(skip)
+                .limit(limit),
             page,
             totalResults: await this.ExerciseRequest.countDocuments(filter),
             totalPages: Math.ceil(await this.ExerciseRequest.countDocuments(filter) / limit)

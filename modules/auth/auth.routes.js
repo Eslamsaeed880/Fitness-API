@@ -7,6 +7,7 @@ import {
     resetPassword,
     getGoogleAuthUrl,
     googleLoginCallback,
+    getMe,
 } from "./auth.controller.js";
 import isAuth from "../../middleware/isAuth.js";
 import passport from "passport";

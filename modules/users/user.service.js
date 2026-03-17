@@ -12,35 +12,29 @@ export default class UserService {
         const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
         const searchRegex = new RegExp(search, 'i');
 
-        return {
-            user: await this.User.find({
-                $or: [
-                    { username: { $regex: searchRegex } },
-                    { fullName: { $regex: searchRegex } },
-                    { email: { $regex: searchRegex } }
-                ]
-            })
+        const filter = {
+            $or: [
+                { username: { $regex: searchRegex } },
+                { fullName: { $regex: searchRegex } },
+                { email: { $regex: searchRegex } }
+            ]
+        };
+
+        const users = await this.User.find(filter)
             .skip(skip)
             .limit(limit)
             .sort(sort)
-            .select('-password -numberOfFollowers -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -coverImage -profilePicture -socialLinks -location'),
+            .select('-password -numberOfFollowers -birthDay -role -__v -createdAt -updatedAt -resetToken -resetTokenExpiry -gender -coverImage -profilePicture -socialLinks -location')
+            .lean();
+
+        const totalResults = await this.User.countDocuments(filter);
+
+        return {
+            user: users,
             page,
-            totalResults: await this.User.countDocuments({
-                $or: [
-                    { username: { $regex: searchRegex } },
-                    { fullName: { $regex: searchRegex } },
-                    { email: { $regex: searchRegex } }
-                ]
-            }),
-            totalPages: Math.ceil(await this.User.countDocuments({
-                $or: [
-                    { username: { $regex: searchRegex } },
-                    { fullName: { $regex: searchRegex } },
-                    { email: { $regex: searchRegex } }
-                ]
-            }) / limit)
-        }
-    
+            totalResults,
+            totalPages: Math.ceil(totalResults / limit)
+        };
     }
 
     async getUserById(userId) {
