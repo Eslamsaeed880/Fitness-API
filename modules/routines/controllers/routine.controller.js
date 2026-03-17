@@ -46,3 +46,21 @@ export const getRoutineById = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch routine'));
     }
 }
+
+// @Desc: Update routine details
+// @Route: PUT /api/routines/:id
+// @Access: Private (only owner can update)
+export const updateRoutine = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const routineId = req.params.id;
+        const { name, description, isPublic } = req.body;
+
+        const updatedRoutine = await routineService.updateRoutine(routineId, userId, { name, description, isPublic });
+
+        res.status(200).json(new APIResponse(200, updatedRoutine, 'Routine updated successfully'));
+    } catch (err) {
+        console.error('Error updating routine:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to update routine'));
+    }
+}

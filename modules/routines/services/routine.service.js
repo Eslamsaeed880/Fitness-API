@@ -104,4 +104,24 @@ export default class RoutineService {
 
         return structuredRoutine;
     }
+
+    async updateRoutine(routineId, userId, routineData) {
+        const routine = await this.Routine.findById(routineId);
+        
+        if (!routine) {
+            throw new APIError(404, 'Routine not found');
+        }
+
+        if (routine.userId.toString() !== userId.toString()) {
+            throw new APIError(403, 'Access denied');
+        }
+
+        routine.name = routineData.name || routine.name;
+        routine.description = routineData.description || routine.description;
+        routine.isPublic = routineData.isPublic !== undefined ? routineData.isPublic : routine.isPublic;
+
+        await routine.save();
+
+        return routine;
+    }
 }
