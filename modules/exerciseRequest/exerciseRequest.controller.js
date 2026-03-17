@@ -41,7 +41,7 @@ export const createExerciseRequest = async (req, res) => {
             req.file
         );
 
-        res.status(201).json(new APIResponse(201, 'Exercise request created successfully', exerciseRequest));
+        res.status(201).json(new APIResponse(201, exerciseRequest, 'Exercise request created successfully'));
     } catch (err) {
         console.error('Error creating exercise request:', err);
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to create exercise request'));
@@ -56,7 +56,7 @@ export const getMyExerciseRequests = async (req, res) => {
         const userId = req.user._id;
         const exerciseRequests = await exercieseRequestService.getMyExerciseRequests(userId);
 
-        res.status(200).json(new APIResponse(200, 'Exercise requests retrieved successfully', exerciseRequests));
+        res.status(200).json(new APIResponse(200, exerciseRequests, 'Exercise requests retrieved successfully'));
     } catch (err) {
         console.error('Error fetching exercise requests:', err);
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch exercise requests'));
@@ -71,7 +71,7 @@ export const getExerciseRequestById = async (req, res) => {
         const exerciseRequestId = req.params.id;
         const exerciseRequest = await exercieseRequestService.getExerciseRequestById(exerciseRequestId);
 
-        res.status(200).json(new APIResponse(200, 'Exercise request retrieved successfully', exerciseRequest));
+        res.status(200).json(new APIResponse(200, exerciseRequest, 'Exercise request retrieved successfully'));
     } catch (err) {
         console.error('Error fetching exercise request:', err);
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch exercise request'));
