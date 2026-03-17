@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
-const workoutTemplateExerciseSchema = new mongoose.Schema({
-    blockId: {
+const RoutineExerciseSchema = new mongoose.Schema({
+    routineId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'WorkoutTemplateBlock',
+        ref: 'Routine',
         required: true
     },
     exerciseId: {
@@ -14,6 +14,11 @@ const workoutTemplateExerciseSchema = new mongoose.Schema({
     orderIndex: {
         type: Number,
         default: 0,
+    },
+    type: {
+        type: String,
+        enum: ['dropset', 'superset', 'exercise'],
+        default: 'exercise'
     },
     targetSets: {
         type: Number,
@@ -29,9 +34,14 @@ const workoutTemplateExerciseSchema = new mongoose.Schema({
         type: Number,
         min: 0,
         default: 0
+    },
+    restSeconds: {
+        type: Number,
+        min: 0,
+        default: 60
     }
 }, { timestamps: true });
 
-const workoutTemplateExercise = mongoose.model('WorkoutTemplateExercise', workoutTemplateExerciseSchema);
+const RoutineExercise = mongoose.model('RoutineExercise', RoutineExerciseSchema);
 
-export default workoutTemplateExercise;
+export default RoutineExercise;

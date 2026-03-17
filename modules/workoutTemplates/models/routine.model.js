@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const workoutTemplateSchema = new mongoose.Schema({
+const RoutineSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -15,12 +15,16 @@ const workoutTemplateSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    likes: {
+        type: Number,
+        default: 0
+    },
     isPublic: {
         type: Boolean,
         default: false
     }
 }, { timestamps: true });
 
-const WorkoutTemplate = mongoose.model('WorkoutTemplate', workoutTemplateSchema);
+const Routine = mongoose.model('Routine', RoutineSchema);
 
-export default WorkoutTemplate;
+export default Routine;
