@@ -172,8 +172,11 @@ export default class RoutineService {
     }
 
     async deleteRoutine(routineId, userId) {
-        const routine = await this.Routine.findById(routineId);
-        
+        const [routine, exercises] = await Promise.all([
+            this.Routine.findById(routineId),
+            this.RoutineExercise.find({ routineId }).select('_id')
+        ]);
+
         if (!routine) {
             throw new APIError(404, 'Routine not found');
         }
@@ -182,14 +185,13 @@ export default class RoutineService {
             throw new APIError(403, 'Access denied');
         }
 
-        // Fetch exercises to get their IDs for deleting sets
-        const exercises = await this.RoutineExercise.find({ routineId }).select('_id');
         const exerciseIds = exercises.map(ex => ex._id);
 
         await Promise.all([
             this.RoutineExercise.deleteMany({ routineId }),
             this.RoutineExerciseSet.deleteMany({ routineExerciseId: { $in: exerciseIds } }),
-            routine.deleteOne()
+            routine.deleteOne(),
+            LikedRoutine.deleteMany({ routineId }), 
         ]);
 
         return {};
