@@ -189,3 +189,20 @@ export const deleteComment = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to delete comment'));
     }
 }
+
+// @Desc: Get all comments for a routine
+// @Route: GET /api/routines/:id/comments?page=1&limit=10
+// @Access: Private (only owner can access)
+export const getCommentsByRoutineId = async (req, res) => {
+    try {
+        const routineId = req.params.id;
+        const { page = 1, limit = 10 } = req.query;
+
+        const comments = await routineService.getCommentsByRoutineId(routineId, +page, +limit);
+
+        res.status(200).json(new APIResponse(200, comments, 'Comments fetched successfully'));
+    } catch (err) {
+        console.error('Error fetching comments:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch comments'));
+    }
+}

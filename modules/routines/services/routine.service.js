@@ -318,4 +318,32 @@ export default class RoutineService {
 
         return {};
     }
+
+    async getCommentsByRoutineId(routineId, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+        const comments = await CommentedRoutine.find({ routineId })
+            .populate({ path: 'userId', select: 'username' })
+            .select('comment createdAt updatedAt userId')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const totalComments = await CommentedRoutine.countDocuments({ routineId });
+        const totalPages = Math.ceil(totalComments / limit);
+
+        return {
+            comments: comments.map(c => ({
+                _id: c._id,
+                userId: c.userId._id,
+                username: c.userId.username,
+                comment: c.comment,
+                createdAt: c.createdAt,
+                updatedAt: c.updatedAt
+            })),
+            pages: totalPages,
+            currentPage: page,
+            totalComments
+        };
+    }
 }
