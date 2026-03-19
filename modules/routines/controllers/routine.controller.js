@@ -101,3 +101,37 @@ export const deleteRoutine = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to delete routine'));
     }
 }
+
+// @Desc: Like a routine
+// @Route: POST /api/routines/:id/like
+// @Access: Private
+export const likeRoutine = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const routineId = req.params.id;
+
+        const result = await routineService.likeRoutine(routineId, userId);
+
+        res.status(200).json(new APIResponse(200, result, 'Routine liked successfully'));
+    } catch (err) {
+        console.error('Error liking routine:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to like routine'));
+    }
+}
+
+// @Desc: Unlike a routine
+// @Route: DELETE /api/routines/:id/like
+// @Access: Private
+export const unlikeRoutine = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const routineId = req.params.id;
+
+        const result = await routineService.unlikeRoutine(routineId, userId);
+
+        res.status(200).json(new APIResponse(200, result, 'Routine unliked successfully'));
+    } catch (err) {
+        console.error('Error unliking routine:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to unlike routine'));
+    }
+}

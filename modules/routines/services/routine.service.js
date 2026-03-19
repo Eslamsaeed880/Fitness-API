@@ -1,5 +1,6 @@
 import APIError from "../../../utils/APIError.js";
 import mongoose from "mongoose";
+import redis from "../../../infrastructure/cache/redis.js";
 
 export default class RoutineService {
     constructor(RoutineModel, routineExerciseModel, routineExerciseSetModel, exerciseService) {
@@ -77,11 +78,12 @@ export default class RoutineService {
         const [routine, exercises] = await Promise.all([
             this.Routine.findById(routineId),
             this.RoutineExercise.find({ routineId })
-                .populate({
-                    path: 'exerciseId',
-                    select: 'name description primaryMuscle equipment media movementType`'
-                })
-                .populate('setsId')
+                .populate(
+                    {
+                        path: 'exerciseId',
+                        select: 'name description primaryMuscle equipment media movementType`'
+                    }
+                )
                 .select('-__v -createdAt -updatedAt')
                 .sort({ orderIndex: 1 })
         ]);
@@ -99,6 +101,7 @@ export default class RoutineService {
             userId: routine.userId,
             name: routine.name,
             description: routine.description,
+            likes: +(await redis.get(`routine:${routineId}:likeCount`) || routine.likes || 0),
             exercises   
         };
 
@@ -189,5 +192,59 @@ export default class RoutineService {
         ]);
 
         return {};
+    }
+
+    async likeRoutine(routineId, userId) {
+        const routine = await this.Routine.findById(routineId).select('_id likes');
+
+        if (!routine) {
+            throw new APIError(404, 'Routine not found');
+        }
+
+        const isNewLike = await redis.sAdd(`routine:${routineId}:likes`, userId.toString());
+
+        const likes = await redis.sCard(`routine:${routineId}:likes`);
+        const liker = await redis.sMembers(`routine:${routineId}:likes`);
+        console.log(` --- Like Routine: Routine ${routineId} now has ${likes} likes in Redis (set: ${liker})`);
+        if (isNewLike) {
+            await redis.set(`routine:${routineId}:likeCount`, String(likes));
+
+            await redis.sAdd('dirtyRoutines', routineId.toString());
+
+            return {
+                routineId,
+                likeCount: likes,
+                liked: true
+            };
+        } else {
+            throw new APIError(400, 'You have already liked this routine');
+        }
+    }
+
+    async unlikeRoutine(routineId, userId) {
+        const routine = await this.Routine.findById(routineId).select('_id likes');
+
+        if (!routine) {
+            throw new APIError(404, 'Routine not found');
+        }
+
+        const wasMember = await redis.sRem(`routine:${routineId}:likes`, userId.toString());
+
+        const likes = await redis.sCard(`routine:${routineId}:likes`);
+        const liker = await redis.sMembers(`routine:${routineId}:likes`);
+        console.log(` --- Unlike Routine: Routine ${routineId} now has ${likes} likes in Redis (set: ${liker})`);
+        if (wasMember) {
+            await redis.set(`routine:${routineId}:likeCount`, String(likes));
+
+            await redis.sAdd('dirtyRoutines', routineId.toString());
+
+            return {
+                routineId,
+                likeCount: likes,
+                liked: false
+            };
+        } else {
+            throw new APIError(400, 'You have not liked this routine');
+        }
     }
 }
