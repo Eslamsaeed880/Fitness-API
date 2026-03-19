@@ -8,7 +8,8 @@ import {
     deleteRoutine, 
     likeRoutine, 
     unlikeRoutine, 
-    getLikedRoutines
+    getLikedRoutines,
+    createComment
 } from '../controllers/routine.controller.js';
 
 const router = express.Router();
@@ -28,5 +29,7 @@ router.put('/:id', isAuth, updateRoutine);
 router.post('/:id/like', isAuth, likeRoutine);
 
 router.delete('/:id/like', isAuth, unlikeRoutine);
+
+router.post('/:id/comment', isAuth, createComment);
 
 export default router;

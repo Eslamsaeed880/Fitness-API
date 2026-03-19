@@ -2,13 +2,15 @@ import APIError from "../../../utils/APIError.js";
 import mongoose from "mongoose";
 import redis from "../../../infrastructure/cache/redis.js";
 import LikedRoutine from "../models/likedRoutine.model.js";
+import CommentedRoutine from "../models/commentedRoutine.model.js";
 
 export default class RoutineService {
-    constructor(RoutineModel, routineExerciseModel, routineExerciseSetModel, exerciseService) {
+    constructor(RoutineModel, routineExerciseModel, routineExerciseSetModel, exerciseService, userService) {
         this.Routine = RoutineModel;
         this.RoutineExercise = routineExerciseModel;
         this.RoutineExerciseSet = routineExerciseSetModel;
         this.exerciseService = exerciseService;
+        this.userService = userService;
     }
 
     async createRoutine(userId, routineData, exercisesData) {
@@ -192,6 +194,7 @@ export default class RoutineService {
             this.RoutineExerciseSet.deleteMany({ routineExerciseId: { $in: exerciseIds } }),
             routine.deleteOne(),
             LikedRoutine.deleteMany({ routineId }), 
+            CommentedRoutine.deleteMany({ routineId })
         ]);
 
         return {};
@@ -270,5 +273,27 @@ export default class RoutineService {
         await redis.set(cachedKey, JSON.stringify(routines), 'EX', 60 * 5); // cache for 5 minutes
 
         return routines;
+    }
+
+    async createComment(routineId, userId, comment) {
+        const [routine, user] = await Promise.all([
+            this.Routine.findById(routineId).select('_id'),
+            this.userService.getUserById(userId)
+        ]);
+
+        if (!routine) {
+            throw new APIError(404, 'Routine not found');
+        }
+
+        if (!user) {
+            throw new APIError(404, 'User not found');
+        }
+
+        const [newComment, ] = await Promise.all([
+            CommentedRoutine.create({ routineId, userId, comment }),
+            this.Routine.updateOne({ _id: routineId }, { $inc: { comments: 1 } })
+        ]);
+
+        return newComment;
     }
 }

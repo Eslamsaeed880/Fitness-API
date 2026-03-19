@@ -6,8 +6,10 @@ import RoutineExercise from "../models/routineExercise.model.js";
 import ExerciseService from "../../exercises/exercise.service.js";
 import RoutineExerciseSet from "../models/routineExerciseSet.model.js";
 import Exercise from "../../exercises/exercise.model.js";
+import UserService from "../../users/user.service.js";
+import User from "../../users/user.model.js";
 
-const routineService = new RoutineService(Routine, RoutineExercise, RoutineExerciseSet, new ExerciseService(Exercise));
+const routineService = new RoutineService(Routine, RoutineExercise, RoutineExerciseSet, new ExerciseService(Exercise), new UserService(User));
 
 // @Desc: Create a new routine
 // @Route: POST /api/routines
@@ -149,5 +151,23 @@ export const getLikedRoutines = async (req, res) => {
     } catch (err) {
         console.error('Error fetching liked routines:', err);
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch liked routines'));
+    }
+}
+
+// @Desc: Create a comment on a routine
+// @Route: POST /api/routines/:id/comment
+// @Access: Private
+export const createComment = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const routineId = req.params.id;
+        const { comment } = req.body;
+
+        const newComment = await routineService.createComment(routineId, userId, comment);
+
+        res.status(201).json(new APIResponse(201, newComment, 'Comment added successfully'));
+    } catch (err) {
+        console.error('Error adding comment:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to add comment'));
     }
 }

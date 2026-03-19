@@ -19,6 +19,10 @@ const RoutineSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    comments: {
+        type: Number,
+        default: 0
+    },
     isPublic: {
         type: Boolean,
         default: true

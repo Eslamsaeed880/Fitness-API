@@ -18,8 +18,6 @@ const CommentedRoutineSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-commentedRoutineSchema.index({ userId: 1, routineId: 1 }, { unique: true });
-
 const CommentedRoutine = mongoose.model('CommentedRoutine', CommentedRoutineSchema);
 
 export default CommentedRoutine;
