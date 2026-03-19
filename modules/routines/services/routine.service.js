@@ -296,4 +296,26 @@ export default class RoutineService {
 
         return newComment;
     }
+
+    async deleteComment(routineId, commentId, userId) {
+        const [comment, user] = await Promise.all([
+            CommentedRoutine.findById(commentId).where({ routineId, userId }).select('userId routineId'),
+            this.userService.getUserById(userId)
+        ]);
+
+        if (!comment) {
+            throw new APIError(404, 'Comment not found');
+        }
+
+        if (!user) {
+            throw new APIError(404, 'User not found');
+        }
+
+        await Promise.all([
+            comment.deleteOne(),
+            this.Routine.updateOne({ _id: comment.routineId }, { $inc: { comments: -1 } })
+        ]);
+
+        return {};
+    }
 }

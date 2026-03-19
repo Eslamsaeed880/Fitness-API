@@ -9,7 +9,8 @@ import {
     likeRoutine, 
     unlikeRoutine, 
     getLikedRoutines,
-    createComment
+    createComment,
+    deleteComment
 } from '../controllers/routine.controller.js';
 
 const router = express.Router();
@@ -31,5 +32,7 @@ router.post('/:id/like', isAuth, likeRoutine);
 router.delete('/:id/like', isAuth, unlikeRoutine);
 
 router.post('/:id/comment', isAuth, createComment);
+
+router.delete('/:id/comment/:commentId', isAuth, deleteComment);
 
 export default router;
