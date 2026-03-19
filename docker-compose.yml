@@ -1,4 +1,37 @@
 services:
+  mongodb:
+    image: mongo:latest
+    container_name: fitness-api-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: fitness-api
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fitness-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: fitness-api-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fitness-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -6,9 +39,51 @@ services:
       target: dev
     env_file:
       - .env
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
     ports:
       - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - .:/build
       - /build/node_modules
+    networks:
+      - fitness-network
     command: npm run dev
+
+  likes-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: fitness-api-likes-worker
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/build
+      - /build/node_modules
+    networks:
+      - fitness-network
+    command: node infrastructure/worker/syncWorker.js
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  fitness-network:
+    driver: bridge
