@@ -57,29 +57,6 @@ services:
       - fitness-network
     command: npm run dev
 
-  likes-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
-    container_name: fitness-api-likes-worker
-    env_file:
-      - .env
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=development
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - .:/build
-      - /build/node_modules
-    networks:
-      - fitness-network
-    command: node infrastructure/worker/syncWorker.js
-
 volumes:
   mongo_data:
   redis_data:

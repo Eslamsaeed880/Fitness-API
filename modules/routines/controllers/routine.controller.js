@@ -135,3 +135,19 @@ export const unlikeRoutine = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to unlike routine'));
     }
 }
+
+// @Desc: Get all liked routines for the authenticated user
+// @Route: GET /api/routines/liked
+// @Access: Private
+export const getLikedRoutines = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const likedRoutines = await routineService.getLikedRoutinesByUser(userId);
+
+        res.status(200).json(new APIResponse(200, likedRoutines, 'Liked routines fetched successfully'));
+    } catch (err) {
+        console.error('Error fetching liked routines:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch liked routines'));
+    }
+}

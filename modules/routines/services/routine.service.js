@@ -1,6 +1,7 @@
 import APIError from "../../../utils/APIError.js";
 import mongoose from "mongoose";
 import redis from "../../../infrastructure/cache/redis.js";
+import LikedRoutine from "../models/likedRoutines.model.js";
 
 export default class RoutineService {
     constructor(RoutineModel, routineExerciseModel, routineExerciseSetModel, exerciseService) {
@@ -101,7 +102,7 @@ export default class RoutineService {
             userId: routine.userId,
             name: routine.name,
             description: routine.description,
-            likes: +(await redis.get(`routine:${routineId}:likeCount`) || routine.likes || 0),
+            likes: routine.likes || 0,
             exercises   
         };
 
@@ -201,24 +202,25 @@ export default class RoutineService {
             throw new APIError(404, 'Routine not found');
         }
 
-        const isNewLike = await redis.sAdd(`routine:${routineId}:likes`, userId.toString());
+        await redis.del(`routines:liked:user:${userId.toString()}`); // Invalidate user's liked routines cache
 
-        const likes = await redis.sCard(`routine:${routineId}:likes`);
-        const liker = await redis.sMembers(`routine:${routineId}:likes`);
-        console.log(` --- Like Routine: Routine ${routineId} now has ${likes} likes in Redis (set: ${liker})`);
-        if (isNewLike) {
-            await redis.set(`routine:${routineId}:likeCount`, String(likes));
-
-            await redis.sAdd('dirtyRoutines', routineId.toString());
-
-            return {
-                routineId,
-                likeCount: likes,
-                liked: true
-            };
-        } else {
+        const existingLike = await LikedRoutine.findOne({ userId, routineId }).select('_id');
+        if (existingLike) {
             throw new APIError(400, 'You have already liked this routine');
         }
+
+        [,] = await Promise.all([
+            await LikedRoutine.create({ userId, routineId }),
+            await this.Routine.updateOne({ _id: routineId }, { $inc: { likes: 1 } })
+        ]);
+
+        const updatedRoutine = await this.Routine.findById(routineId).select('likes');
+
+        return {
+            routineId,
+            likeCount: updatedRoutine?.likes || 0,
+            liked: true
+        };
     }
 
     async unlikeRoutine(routineId, userId) {
@@ -228,23 +230,43 @@ export default class RoutineService {
             throw new APIError(404, 'Routine not found');
         }
 
-        const wasMember = await redis.sRem(`routine:${routineId}:likes`, userId.toString());
+        await redis.del(`routines:liked:user:${userId.toString()}`); // Invalidate user's liked routines cache
 
-        const likes = await redis.sCard(`routine:${routineId}:likes`);
-        const liker = await redis.sMembers(`routine:${routineId}:likes`);
-        console.log(` --- Unlike Routine: Routine ${routineId} now has ${likes} likes in Redis (set: ${liker})`);
-        if (wasMember) {
-            await redis.set(`routine:${routineId}:likeCount`, String(likes));
-
-            await redis.sAdd('dirtyRoutines', routineId.toString());
-
-            return {
-                routineId,
-                likeCount: likes,
-                liked: false
-            };
-        } else {
+        const deleteResult = await LikedRoutine.deleteOne({ userId, routineId });
+        if (!deleteResult.deletedCount) {
             throw new APIError(400, 'You have not liked this routine');
         }
+
+        await this.Routine.updateOne({ _id: routineId, likes: { $gt: 0 } }, { $inc: { likes: -1 } });
+        const updatedRoutine = await this.Routine.findById(routineId).select('likes');
+
+        return {
+            routineId,
+            likeCount: updatedRoutine?.likes || 0,
+            liked: false
+        };
+    }
+
+    async getLikedRoutinesByUser(userId) {
+        const userIdString = userId.toString();
+        
+        const cachedKey = `routines:liked:user:${userIdString}`;
+        const doesExistInCache = await redis.exists(cachedKey);
+
+        if (doesExistInCache) {
+            const cachedData = await redis.get(cachedKey);
+            console.log(` --- Get Liked Routines: Cache hit for user ${userIdString}`);
+            return JSON.parse(cachedData);
+        }
+
+        console.log(` --- Get Liked Routines: Cache miss for user ${userIdString}, querying database`);
+        const likedRoutines = await LikedRoutine.find({ userId }).select('routineId -_id');
+        const routineIds = likedRoutines.map(doc => doc.routineId);
+
+        const routines = await this.Routine.find({ _id: { $in: routineIds } }).select('name description');
+
+        await redis.set(cachedKey, JSON.stringify(routines), 'EX', 60 * 5); // cache for 5 minutes
+
+        return routines;
     }
 }

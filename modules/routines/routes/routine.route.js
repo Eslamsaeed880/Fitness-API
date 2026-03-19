@@ -7,12 +7,15 @@ import {
     updateRoutineExercises, 
     deleteRoutine, 
     likeRoutine, 
-    unlikeRoutine 
+    unlikeRoutine, 
+    getLikedRoutines
 } from '../controllers/routine.controller.js';
 
 const router = express.Router();
 
 router.post('/', isAuth, createRoutine);
+
+router.get('/liked', isAuth, getLikedRoutines);
 
 router.get('/:id', isAuth, getRoutineById);
 
