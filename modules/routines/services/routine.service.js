@@ -1,7 +1,7 @@
 import APIError from "../../../utils/APIError.js";
 import mongoose from "mongoose";
 import redis from "../../../infrastructure/cache/redis.js";
-import LikedRoutine from "../models/likedRoutines.model.js";
+import LikedRoutine from "../models/likedRoutine.model.js";
 
 export default class RoutineService {
     constructor(RoutineModel, routineExerciseModel, routineExerciseSetModel, exerciseService) {
