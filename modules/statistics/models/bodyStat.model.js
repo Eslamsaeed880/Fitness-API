@@ -17,6 +17,10 @@ const bodyStatSchema = new mongoose.Schema({
     muscleMassKg: {
         type: Number,
         min: 0
+    },
+    goal:{
+        type: String,
+        enum: ['lose fat', 'gain muscle', 'maintain weight']
     }
 }, { timestamps: true });
 
