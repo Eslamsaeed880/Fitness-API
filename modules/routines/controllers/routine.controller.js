@@ -11,6 +11,31 @@ import User from "../../users/user.model.js";
 
 const routineService = new RoutineService(Routine, RoutineExercise, RoutineExerciseSet, new ExerciseService(Exercise), new UserService(User));
 
+// @Desc: Get all routines
+// @Route: GET /api/routines?page=1&limit=10&filter=&sortBy=createdAt&sortOrder=desc&primaryMuscle=chest&equipment=dumbbell&movementType=strength
+// @Access: public
+export const getAllRoutines = async (req, res) => {
+    try {
+        const { page, limit, filter, sortBy, sortOrder, searchQuery, primaryMuscle, equipment, movementType } = req.query;
+        const routines = await routineService.getAllRoutines(
+            parseInt(page) || 1,
+            parseInt(limit) || 10,
+            filter ? JSON.parse(filter) : {},
+            sortBy,
+            sortOrder,
+            searchQuery,
+            primaryMuscle,
+            equipment,
+            movementType
+        );
+
+        res.status(200).json(new APIResponse(200, routines, 'Routines fetched successfully'));
+    } catch (err) {
+        console.error('Error fetching routines:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to fetch routines'));
+    }
+}
+
 // @Desc: Create a new routine
 // @Route: POST /api/routines
 // @Access: Private

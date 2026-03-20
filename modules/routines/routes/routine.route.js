@@ -11,10 +11,13 @@ import {
     getLikedRoutines,
     createComment,
     deleteComment,
-    getCommentsByRoutineId
+    getCommentsByRoutineId,
+    getAllRoutines
 } from '../controllers/routine.controller.js';
 
 const router = express.Router();
+
+router.get('/', getAllRoutines);
 
 router.post('/', isAuth, createRoutine);
 

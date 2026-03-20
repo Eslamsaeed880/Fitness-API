@@ -13,6 +13,87 @@ export default class RoutineService {
         this.userService = userService;
     }
 
+    async getAllRoutines(page = 1, limit = 10, filter = {}, sortBy = 'createdAt', sortOrder = 'desc', searchQuery = '', primaryMuscle, equipment, movementType) {
+        const skip = (page - 1) * limit;
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+        const matchConditions = [];
+
+        if (searchQuery) {
+            matchConditions.push({
+                $or: [
+                    { name: { $regex: searchQuery, $options: 'i' } },
+                    { description: { $regex: searchQuery, $options: 'i' } }
+                ]
+            });
+        }
+
+        if (primaryMuscle) {
+            matchConditions.push({ 'exercises.exerciseId.primaryMuscle': primaryMuscle });
+        }
+
+        if (equipment) {
+            matchConditions.push({ 'exercises.exerciseId.equipment': equipment });
+        }
+
+        if (movementType) {
+            matchConditions.push({ 'exercises.exerciseId.movementType': movementType });
+        }
+
+        const finalFilter = Object.keys(filter).length ? { ...filter, isPublic: true } : { isPublic: true };
+
+        if (matchConditions.length) {
+            finalFilter.$and = matchConditions;
+        }
+
+        const routines = await this.Routine.aggregate([
+            { $match: finalFilter },
+            {
+                $lookup: {
+                    from: 'routineexercises',
+                    localField: '_id',
+                    foreignField: 'routineId',
+                    as: 'exercises'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$user',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            { $sort: sortOptions },
+            { $skip: skip },
+            { $limit: limit },
+        ]);
+
+        const totalRoutines = await this.Routine.countDocuments(finalFilter);
+        const totalPages = Math.ceil(totalRoutines / limit);
+
+        return {
+            routines: routines.map(routine => ({
+                _id: routine._id,
+                userId: routine.userId,
+                username: routine.user?.username || null,
+                name: routine.name,
+                description: routine.description,
+                isPublic: routine.isPublic
+            })),
+            pages: totalPages,
+            currentPage: page,
+            totalRoutines
+        };
+    }
+
     async createRoutine(userId, routineData, exercisesData) {
         const session = await mongoose.startSession();
 
