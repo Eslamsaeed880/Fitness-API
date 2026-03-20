@@ -5,8 +5,8 @@ const setSchema = new mongoose.Schema({
         {
             type: {
                 type: String,
-                enum: ['strength', 'cardio'],
-                default: 'strength'
+                enum: ['normal', 'failure', 'warmup'],
+                default: 'normal'
             },
             reps: {
                 type: Number,
@@ -23,12 +23,15 @@ const setSchema = new mongoose.Schema({
             durationSeconds: {
                 type: Number,
                 min: 0,
-                default: 120
             },
             rpe: {
                 type: Number,
                 min: 1,
                 max: 10
+            },
+            restSeconds: {
+                type: Number,
+                min: 0
             }
         }
     ],

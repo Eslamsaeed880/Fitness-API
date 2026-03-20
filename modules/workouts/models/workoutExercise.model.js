@@ -6,14 +6,19 @@ const workoutExerciseSchema = new mongoose.Schema({
         ref: 'Workout',
         required: true
     },
+    orderIndex: {
+        type: Number,
+        default: 0,
+    },
     exerciseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Exercise',
         required: true
     },
-    orderIndex: {
-        type: Number,
-        default: 0,
+    mode: {
+        type: String,
+        enum: ['strength', 'cardio'],
+        default: 'strength'
     },
     setsId: {
         type: mongoose.Schema.Types.ObjectId,
