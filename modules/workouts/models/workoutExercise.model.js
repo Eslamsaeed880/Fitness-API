@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 const workoutExerciseSchema = new mongoose.Schema({
-    blockId: {
+    workoutId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'WorkoutBlock',
+        ref: 'Workout',
         required: true
     },
     exerciseId: {
@@ -14,6 +14,10 @@ const workoutExerciseSchema = new mongoose.Schema({
     orderIndex: {
         type: Number,
         default: 0,
+    },
+    setsId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Set'
     }
 }, { timestamps: true });
 

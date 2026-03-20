@@ -6,9 +6,13 @@ const workoutSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    templateId: {
+    notes: {
+        type: String,
+        trim: true
+    },
+    routineId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'WorkoutTemplate'
+        ref: 'Routine'
     },
     startTime: {
         type: Date,
@@ -22,10 +26,6 @@ const workoutSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    notes: {
-        type: String,
-        trim: true
-    }
 }, { timestamps: true });
 
 const Workout = mongoose.model('Workout', workoutSchema);
