@@ -15,6 +15,11 @@ const RoutineExerciseSchema = new mongoose.Schema({
         ref: 'Exercise',
         required: true
     },
+    mode: {
+        type: String,
+        enum: ['strength', 'cardio'],
+        default: 'strength'
+    },
     setsId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'RoutineExerciseSet'

@@ -13,42 +13,53 @@ export default class RoutineService {
         this.userService = userService;
     }
 
+    async validateExerciseIds(exercisesData) {
+        if (!Array.isArray(exercisesData) || !exercisesData.length) {
+            throw new APIError(400, 'exercises must be a non-empty array');
+        }
+
+        const rawExerciseIds = exercisesData.map((exercise, index) => {
+            if (!exercise?.exerciseId) {
+                throw new APIError(400, `exerciseId is required for exercise at index ${index}`);
+            }
+
+            return exercise.exerciseId.toString();
+        });
+
+        const invalidIds = rawExerciseIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
+        if (invalidIds.length) {
+            throw new APIError(400, `Invalid exerciseId(s): ${invalidIds.join(', ')}`);
+        }
+
+        const uniqueExerciseIds = [...new Set(rawExerciseIds)].map(id => new mongoose.Types.ObjectId(id));
+        const existingExercises = await this.exerciseService.Exercise.find({ _id: { $in: uniqueExerciseIds } })
+            .select('_id')
+            .lean();
+
+        const existingIds = new Set(existingExercises.map(exercise => exercise._id.toString()));
+        const missingIds = [...new Set(rawExerciseIds)].filter(id => !existingIds.has(id));
+
+        if (missingIds.length) {
+            throw new APIError(404, `Exercise(s) not found: ${missingIds.join(', ')}`);
+        }
+    }
+
     async getAllRoutines(page = 1, limit = 10, filter = {}, sortBy = 'createdAt', sortOrder = 'desc', searchQuery = '', primaryMuscle, equipment, movementType) {
         const skip = (page - 1) * limit;
         const sortOptions = {};
         sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-        const matchConditions = [];
+        const baseMatch = Object.keys(filter).length ? { ...filter, isPublic: true } : { isPublic: true };
 
         if (searchQuery) {
-            matchConditions.push({
-                $or: [
-                    { name: { $regex: searchQuery, $options: 'i' } },
-                    { description: { $regex: searchQuery, $options: 'i' } }
-                ]
-            });
+            baseMatch.$or = [
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } }
+            ];
         }
 
-        if (primaryMuscle) {
-            matchConditions.push({ 'exercises.exerciseId.primaryMuscle': primaryMuscle });
-        }
-
-        if (equipment) {
-            matchConditions.push({ 'exercises.exerciseId.equipment': equipment });
-        }
-
-        if (movementType) {
-            matchConditions.push({ 'exercises.exerciseId.movementType': movementType });
-        }
-
-        const finalFilter = Object.keys(filter).length ? { ...filter, isPublic: true } : { isPublic: true };
-
-        if (matchConditions.length) {
-            finalFilter.$and = matchConditions;
-        }
-
-        const routines = await this.Routine.aggregate([
-            { $match: finalFilter },
+        const filterStages = [
+            { $match: baseMatch },
             {
                 $lookup: {
                     from: 'routineexercises',
@@ -57,6 +68,30 @@ export default class RoutineService {
                     as: 'exercises'
                 }
             },
+            {
+                $lookup: {
+                    from: 'exercises',
+                    localField: 'exercises.exerciseId',
+                    foreignField: '_id',
+                    as: 'exerciseDetails'
+                }
+            }
+        ];
+
+        if (primaryMuscle) {
+            filterStages.push({ $match: { 'exerciseDetails.primaryMuscle': primaryMuscle } });
+        }
+
+        if (equipment) {
+            filterStages.push({ $match: { 'exerciseDetails.equipments': equipment } });
+        }
+
+        if (movementType) {
+            filterStages.push({ $match: { 'exerciseDetails.movementType': movementType } });
+        }
+
+        const routines = await this.Routine.aggregate([
+            ...filterStages,
             {
                 $lookup: {
                     from: 'users',
@@ -76,7 +111,10 @@ export default class RoutineService {
             { $limit: limit },
         ]);
 
-        const totalRoutines = await this.Routine.countDocuments(finalFilter);
+        const [{ totalRoutines = 0 } = {}] = await this.Routine.aggregate([
+            ...filterStages,
+            { $count: 'totalRoutines' }
+        ]);
         const totalPages = Math.ceil(totalRoutines / limit);
 
         return {
@@ -95,7 +133,10 @@ export default class RoutineService {
     }
 
     async createRoutine(userId, routineData, exercisesData) {
-        const session = await mongoose.startSession();
+        const [session] = await Promise.all([
+            mongoose.startSession(),
+            this.validateExerciseIds(exercisesData)
+        ]);
 
         try {
             session.startTransaction();
@@ -165,7 +206,13 @@ export default class RoutineService {
                 .populate(
                     {
                         path: 'exerciseId',
-                        select: 'name description primaryMuscle equipment media movementType`'
+                        select: 'name description primaryMuscle equipments media movementType'
+                    }
+                )
+                .populate(
+                    {
+                        path: 'setsId',
+                        select: 'sets'
                     }
                 )
                 .select('-__v -createdAt -updatedAt')
@@ -213,7 +260,10 @@ export default class RoutineService {
     }
 
     async updateRoutineExercises(routineId, userId, exercisesData) {
-        const routine = await this.Routine.findById(routineId);
+        const [routine] = await Promise.all([
+            this.Routine.findById(routineId),
+            this.validateExerciseIds(exercisesData)
+        ]);
         
         if (!routine) {
             throw new APIError(404, 'Routine not found');
@@ -223,10 +273,15 @@ export default class RoutineService {
             throw new APIError(403, 'Access denied');
         }
 
+        const existingExercises = await this.RoutineExercise.find({ routineId }).select('setsId');
+        const existingSetIds = existingExercises
+            .map(exercise => exercise.setsId)
+            .filter(Boolean);
+
         // For simplicity, delete existing exercises and sets, then re-create
         await Promise.all([
             this.RoutineExercise.deleteMany({ routineId }),
-            this.RoutineExerciseSet.deleteMany({ routineExerciseId: { $in: exercisesData.map(ex => ex._id) } })
+            this.RoutineExerciseSet.deleteMany({ _id: { $in: existingSetIds } })
         ]);
 
         // Re-create exercises and sets
@@ -257,7 +312,7 @@ export default class RoutineService {
     async deleteRoutine(routineId, userId) {
         const [routine, exercises] = await Promise.all([
             this.Routine.findById(routineId),
-            this.RoutineExercise.find({ routineId }).select('_id')
+            this.RoutineExercise.find({ routineId }).select('setsId')
         ]);
 
         if (!routine) {
@@ -268,11 +323,13 @@ export default class RoutineService {
             throw new APIError(403, 'Access denied');
         }
 
-        const exerciseIds = exercises.map(ex => ex._id);
+        const setIds = exercises
+            .map(exercise => exercise.setsId)
+            .filter(Boolean);
 
         await Promise.all([
             this.RoutineExercise.deleteMany({ routineId }),
-            this.RoutineExerciseSet.deleteMany({ routineExerciseId: { $in: exerciseIds } }),
+            this.RoutineExerciseSet.deleteMany({ _id: { $in: setIds } }),
             routine.deleteOne(),
             LikedRoutine.deleteMany({ routineId }), 
             CommentedRoutine.deleteMany({ routineId })
@@ -295,9 +352,9 @@ export default class RoutineService {
             throw new APIError(400, 'You have already liked this routine');
         }
 
-        [,] = await Promise.all([
-            await LikedRoutine.create({ userId, routineId }),
-            await this.Routine.updateOne({ _id: routineId }, { $inc: { likes: 1 } })
+        await Promise.all([
+            LikedRoutine.create({ userId, routineId }),
+            this.Routine.updateOne({ _id: routineId }, { $inc: { likes: 1 } })
         ]);
 
         const updatedRoutine = await this.Routine.findById(routineId).select('likes');

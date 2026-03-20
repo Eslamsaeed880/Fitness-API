@@ -10,18 +10,28 @@ const RoutineExerciseSetSchema = new mongoose.Schema({
             },
             targetReps: {
                 type: Number,
-                min: 1,
-                default: 1
+                min: 1
             },
             targetWeightKg: {
                 type: Number,
-                min: 0,
-                default: 0
+                min: 0
+            },
+            distance: {
+                type: Number,
+                min: 0
+            },
+            durationSeconds: {
+                type: Number,
+                min: 0
+            },
+            rpe: {
+                type: Number,
+                min: 1,
+                max: 10
             },
             restSeconds: {
                 type: Number,
                 min: 0,
-                default: 60
             }
         }
     ]

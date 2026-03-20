@@ -1,6 +1,6 @@
 import User from '../users/user.model.js';
 // import Exercise from '../models/exercise.model.js';
-import Post from '../../models/post.model.js';
+// import Post from '../../models/post.model.js';
 import Muscle from '../muscles/muscle.model.js';
 import Exercise from '../exercises/exercise.model.js';
 import APIError from '../../utils/APIError.js';
