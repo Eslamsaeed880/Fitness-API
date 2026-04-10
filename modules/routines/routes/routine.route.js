@@ -31,14 +31,4 @@ router.put('/:id/exercises', isAuth, updateRoutineExercises);
 
 router.put('/:id', isAuth, updateRoutine);
 
-router.post('/:id/like', isAuth, likeRoutine);
-
-router.delete('/:id/like', isAuth, unlikeRoutine);
-
-router.post('/:id/comments', isAuth, createComment);
-
-router.delete('/:id/comments/:commentId', isAuth, deleteComment);
-
-router.get('/:id/comments', isAuth, getCommentsByRoutineId);
-
 export default router;
