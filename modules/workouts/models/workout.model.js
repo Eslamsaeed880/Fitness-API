@@ -6,7 +6,7 @@ const workoutSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    notes: {
+    description: {
         type: String,
         trim: true
     },
