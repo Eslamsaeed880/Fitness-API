@@ -1,50 +1,42 @@
 import { Worker } from 'bullmq';
-import IORedis from 'ioredis';
 import MediaService from '../media/media.service.js';
-
-const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379', {
-    maxRetriesPerRequest: null,
-});
+import { getBullmqConnection } from '../../config/bullmq.connection.js';
 
 const mediaService = new MediaService();
 
-export const mediaWorker = new Worker('media', async (job) => {
-    try {
+export const mediaWorker = new Worker(
+    'media',
+    async (job) => {
         const { type, payload } = job.data;
 
         switch (type) {
-            case 'upload':
-                return await mediaService.uploadToCloudinary(
-                    payload.filePath,
-                    payload.folder
-                );
-
-            case 'delete':
-                return await mediaService.deleteFromCloudinary(
-                    payload.publicId,
-                    payload.type || 'image'
-                );
-
+            case 'upload': {
+                const { filePath, folder } = payload;
+                return await mediaService.uploadToCloudinary(filePath, folder);
+            }
+            case 'delete': {
+                const { publicId, resourceType } = payload;
+                return await mediaService.deleteFromCloudinary(publicId, resourceType);
+            }
             default:
                 throw new Error(`Unknown job type: ${type}`);
         }
-    } catch (err) {
-        console.error('Media worker error:', err);
-        throw err;
-    }
-}, { connection });
+    },
+    { connection: getBullmqConnection() }
+);
 
-// Worker event handlers
 mediaWorker.on('completed', (job) => {
-    console.log(`Job ${job.id} completed successfully`);
+    console.log(`[MediaWorker] Job ${job.id} completed successfully`);
 });
 
 mediaWorker.on('failed', (job, err) => {
-    console.error(`Job ${job.id} failed with error:`, err.message);
+    console.error(`[MediaWorker] Job ${job?.id} failed:`, err.message);
 });
 
 mediaWorker.on('error', (err) => {
-    console.error('Worker error:', err);
+    console.error('[MediaWorker] Worker error:', err);
 });
+
+console.log('Media worker started and listening for jobs...');
 
 export default mediaWorker;

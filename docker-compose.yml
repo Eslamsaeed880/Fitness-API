@@ -77,6 +77,26 @@ services:
       - fitness-network
     command: node infrastructure/worker/media.worker.js
 
+  exercise-worker:
+    build: .
+    container_name: exercise-worker
+    env_file: .env
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/fitness-app
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./:/build
+      - /build/node_modules
+    networks:
+      - fitness-network
+    command: node modules/exercises/infrastructure/exercise.worker.js
+
 volumes:
   mongo_data:
   redis_data:

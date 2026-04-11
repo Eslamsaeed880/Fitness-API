@@ -1,5 +1,6 @@
 import APIError from "../../utils/APIError.js";
 import MediaService from "../../infrastructure/media/media.service.js";
+import { enqueueExerciseCreateJob } from "./infrastructure/exercise.queue.js";
 
 export default class ExerciseService {
     constructor(exerciseModel, muscleService) {
@@ -73,19 +74,27 @@ export default class ExerciseService {
         if(exerciseData.secondaryMuscle && !secondaryMuscle) {
             throw new APIError(400, 'Secondary muscle not found.');
         }
-        
-        const exercise = new this.Exercise(exerciseData);
 
-        if (file) {
-            const uploaded = await this.mediaService.uploadToCloudinary(file.path, 'media');
-            exercise.media = {
-                url: uploaded.url,
-                publicId: uploaded.publicId,
-            };
-
-            await exercise.save();
-        } else {
+        if (!file) {
             throw new APIError(400, 'Media file is required for exercise creation.');
+        }
+
+        const exercise = new this.Exercise({
+            ...exerciseData,
+            status: 'processing',
+        });
+        await exercise.save();
+
+        try {
+            await enqueueExerciseCreateJob({
+                exerciseId: exercise._id.toString(),
+                filePath: file.path,
+                folder: 'media',
+            });
+        } catch (err) {
+            exercise.status = 'failed';
+            await exercise.save();
+            throw new APIError(500, 'Failed to queue exercise media processing.');
         }
 
         return exercise;
@@ -129,6 +138,7 @@ export default class ExerciseService {
         };
 
         const exercise = await new this.Exercise(exerciseData);
+        exercise.status = 'ready';
         await exercise.save();
 
         return exercise;

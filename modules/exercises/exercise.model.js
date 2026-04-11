@@ -34,17 +34,20 @@ const exerciseSchema = new mongoose.Schema({
     media: {
         publicId: {
             type: String,
-            required: true
         },
         url: {
             type: String,
-            required: true
         },
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+    status: {
+        type: String,
+        enum: ['processing', 'failed', 'ready'],
+        default: 'processing'
+    },
 }, { timestamps: true });
 
 const Exercise = mongoose.model('Exercise', exerciseSchema);

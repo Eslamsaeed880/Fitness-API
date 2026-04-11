@@ -32,7 +32,7 @@ export async function enqueueMediaJob({
 
         return job;
     } catch (err) {
-        console.error('Error enqueuing media job:', err);
+        console.error('[MediaQueue] Failed to enqueue job:', err);
         throw new Error('Failed to enqueue media job');
     }
 }
