@@ -47,8 +47,6 @@ const exerciseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-exerciseSchema.index({ name: 1 }, { unique: true });
-
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 export default Exercise;

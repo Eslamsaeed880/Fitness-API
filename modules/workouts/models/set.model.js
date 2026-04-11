@@ -37,8 +37,6 @@ const setSchema = new mongoose.Schema({
     ],
 }, { timestamps: true });
 
-setSchema.index({ workoutExerciseId: 1 });
-
 const Set = mongoose.model('Set', setSchema);
 
 export default Set;
