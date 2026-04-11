@@ -1,15 +1,14 @@
 import APIError from "../../utils/APIError.js";
 
 export default class ExerciseRequestService {
-    constructor(ExerciseRequestModel, exerciseService, mediaService, muscleService, userService) {
+    constructor(ExerciseRequestModel, exerciseService, muscleService, userService) {
         this.ExerciseRequest = ExerciseRequestModel;
         this.exerciseService = exerciseService;
-        this.mediaService = mediaService;
         this.muscleService = muscleService;
         this.userService = userService;
     }
 
-    async createExerciseRequest(exerciseData, file) {
+    async createExerciseRequest(exerciseData) {
         exerciseData.equipments = this.exerciseService.toEquipmentsArray(exerciseData.equipments) || [];
 
         const primaryMuscle = await this.muscleService.getMuscleByName(exerciseData.primaryMuscle);
@@ -24,18 +23,7 @@ export default class ExerciseRequestService {
         }
         
         const exerciseRequest = new this.ExerciseRequest(exerciseData);
-
-        if (file) {
-            const uploaded = await this.mediaService.uploadToCloudinary(file.path, 'media');
-            exerciseRequest.media = {
-                url: uploaded.url,
-                publicId: uploaded.publicId,
-            };
-
-            await exerciseRequest.save();
-        } else {
-            throw new APIError(400, 'Media file is required for exercise request creation.');
-        }
+        await exerciseRequest.save();
 
         return exerciseRequest;
     }
@@ -84,7 +72,7 @@ export default class ExerciseRequestService {
         return exerciseRequest;
     }
 
-    async updateExerciseRequest(id, exerciseData, file) {
+    async updateExerciseRequest(id, exerciseData) {
         exerciseData.equipments = this.exerciseService.toEquipmentsArray(exerciseData.equipments) || [];
 
         if(exerciseData.primaryMuscle) {
@@ -109,17 +97,8 @@ export default class ExerciseRequestService {
             throw new APIError(404, 'Exercise request not found');
         }
         
-        if (file) {
-            const uploaded = await this.mediaService.uploadToCloudinary(file.path, 'media');
-            exerciseRequest.media = {
-                url: uploaded.url,
-                publicId: uploaded.publicId,
-            };
+        await exerciseRequest.save();
 
-            await exerciseRequest.save();
-        }
-        
-        
         return exerciseRequest;
     }
 
@@ -138,7 +117,6 @@ export default class ExerciseRequestService {
                 secondaryMuscles: exerciseRequest.secondaryMuscles,
                 equipments: exerciseRequest.equipments,
                 movementType: exerciseRequest.movementType,
-                media: exerciseRequest.media
             };
 
             await this.exerciseService.acceptExerciseRequest(exerciseData);

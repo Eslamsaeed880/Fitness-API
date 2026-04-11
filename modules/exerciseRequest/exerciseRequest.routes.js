@@ -7,7 +7,6 @@ import {
     deleteExerciseRequest,
     updateExerciseRequest
  } from './exerciseRequest.controller.js';
-import { upload } from '../../middleware/multer.js';
 
 const router = express.Router();
 
@@ -15,9 +14,9 @@ router.get('/', isAuth, getMyExerciseRequests);
 
 router.get('/:id', isAuth, getExerciseRequestById);
 
-router.post('/', isAuth, upload.single('media'), createExerciseRequest);
+router.post('/', isAuth, createExerciseRequest);
 
-router.put('/:id', isAuth, upload.single('media'), updateExerciseRequest);
+router.put('/:id', isAuth, updateExerciseRequest);
 
 router.delete('/:id', isAuth, deleteExerciseRequest);
 

@@ -4,7 +4,6 @@ import ExerciseRequest from "./exerciseRequest.model.js";
 import ExerciseRequestService from "./exerciseRequest.service.js";
 import ExerciseService from "../exercises/exercise.service.js";
 import MuscleService from "../muscles/muscle.service.js";
-import MediaService from "../../infrastructure/media/media.service.js";
 import UserService from "../users/user.service.js";
 import Exercise from "../exercises/exercise.model.js";
 import Muscle from "../muscles/muscle.model.js";
@@ -12,8 +11,7 @@ import User from "../users/user.model.js";
 
 const exercieseRequestService = new ExerciseRequestService(
     ExerciseRequest, 
-    new ExerciseService(Exercise, new MuscleService(), new MediaService()), 
-    new MediaService(), 
+    new ExerciseService(Exercise, new MuscleService()), 
     new MuscleService(Muscle),
     new UserService(User)
 );
@@ -27,7 +25,6 @@ export const createExerciseRequest = async (req, res) => {
         const userId = req.user._id;
 
         console.log('Received exercise request data:', req.body);
-        console.log('Received file:', req.file);
 
         const exerciseRequest = await exercieseRequestService.createExerciseRequest({
             name,
@@ -37,9 +34,7 @@ export const createExerciseRequest = async (req, res) => {
             equipments,
             movementType,
             createdBy: userId
-        },
-            req.file
-        );
+        });
 
         res.status(201).json(new APIResponse(201, exerciseRequest, 'Exercise request created successfully'));
     } catch (err) {
@@ -108,8 +103,8 @@ export const updateExerciseRequest = async (req, res) => {
             secondaryMuscle,
             equipments,
             movementType
-        }, req.file);
-
+        });
+        
         res.status(200).json(new APIResponse(200, { exerciseRequest }, 'Exercise request updated successfully'));
     } catch (err) {
         console.error('Error updating exercise request:', err);

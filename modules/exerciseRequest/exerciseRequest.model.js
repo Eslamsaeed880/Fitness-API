@@ -29,16 +29,6 @@ const exerciseRequestSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    media: {
-        publicId: {
-            type: String,
-            required: true
-        },
-        url: {
-            type: String,
-            required: true
-        },
-    },
     status: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],
