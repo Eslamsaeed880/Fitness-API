@@ -34,3 +34,20 @@ export const createWorkout = async (req, res, next) => {
         next(new APIError(err.statusCode || 500, err.message || 'Failed to create workout'));
     }
 }
+
+// @Desc: Get workout by ID
+// @Route: GET /api/v1/workout/:id
+// @Access: Private
+export const getWorkoutById = async (req, res, next) => {
+    try {
+        const workoutId = req.params.id;
+        const userId = req.user.id;
+        const workout = await workoutService.getWorkoutById(workoutId, userId);
+        if (!workout) {
+            return next(new APIError(404, 'Workout not found'));
+        }
+        return res.status(200).json(new APIResponse(200, workout, 'Workout retrieved successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve workout'));
+    }
+}

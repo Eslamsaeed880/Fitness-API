@@ -29,6 +29,7 @@ export default class WorkoutService {
         let workoutId = null;
         let workoutExerciseDocs = [];
         let setDocs = [];
+        let setIdsByExerciseIndex = [];
 
         try {
             if (useTransaction) {
@@ -44,34 +45,23 @@ export default class WorkoutService {
 
             workoutId = workout[0]._id;
 
-            // Pre-generate IDs for workout exercises and sets
+            // Pre-generate IDs for sets first
+            setIdsByExerciseIndex = exercises.map(() => new mongoose.Types.ObjectId());
+
+            // Pre-build set documents
+            setDocs = exercises.map((ex, index) => ({
+                _id: setIdsByExerciseIndex[index],
+                sets: Array.isArray(ex.sets) ? ex.sets : []
+            }));
+
+            // Build workout exercises with setsId references
             workoutExerciseDocs = exercises.map((ex, index) => ({
-                _id: new mongoose.Types.ObjectId(),
-                exerciseData: ex,
-                index
-            }));
-
-            // Build all documents at once
-            workoutExerciseDocs = workoutExerciseDocs.map((exDoc) => ({
-                _id: exDoc._id,
                 workoutId,
-                exerciseId: exDoc.exerciseData.exerciseId,
-                mode: exDoc.exerciseData.mode,
-                orderIndex: exDoc.index
+                exerciseId: ex.exerciseId,
+                mode: ex.mode,
+                orderIndex: index,
+                setsId: setIdsByExerciseIndex[index]
             }));
-
-            // Pre-build set documents referencing the pre-generated exercise IDs
-            setDocs = [];
-            exercises.forEach((ex, index) => {
-                const sets = Array.isArray(ex.sets) ? ex.sets : [];
-                sets.forEach((set, setIndex) => {
-                    setDocs.push({
-                        workoutExerciseId: workoutExerciseDocs[index]._id,
-                        ...set,
-                        orderIndex: setIndex
-                    });
-                });
-            });
 
             // Insert all in parallel
             if (useTransaction) {
@@ -93,8 +83,14 @@ export default class WorkoutService {
                 userId,
                 description,
                 routineId: routineId || null,
-                exercises: workoutExerciseDocs,
-                sets: setDocs
+                exercises: workoutExerciseDocs.map((ex, index) => ({
+                    _id: ex._id,
+                    exerciseId: ex.exerciseId,
+                    mode: ex.mode,
+                    orderIndex: ex.orderIndex,
+                    setsId: ex.setsId,
+                    sets: exercises[index].sets
+                }))
             };
 
         } catch (error) {
@@ -104,7 +100,7 @@ export default class WorkoutService {
                 // Cleanup on error for non-transaction mode
                 await Promise.allSettled([
                     this.workoutExerciseModel.deleteMany({ workoutId }),
-                    this.setModel.deleteMany({ workoutExerciseId: { $in: workoutExerciseDocs.map(doc => doc._id) } }),
+                    this.setModel.deleteMany({ _id: { $in: setIdsByExerciseIndex } }),
                     this.workoutModel.deleteOne({ _id: workoutId })
                 ]);
             }
@@ -141,8 +137,31 @@ export default class WorkoutService {
         return user;
     }
 
-    async getWorkoutById(workoutId) {
+    async getWorkoutById(workoutId, userId) {
+        const [workout, exercises] = await Promise.all([
+            this.workoutModel.findOne({ _id: workoutId, userId }),
+            this.workoutExerciseModel.find({ workoutId })
+                .populate(
+                    {
+                        path: 'exerciseId',
+                        select: 'name description primaryMuscle equipments media movementType'
+                    }
+                )
+                .populate(
+                    {
+                        path: 'setsId',
+                        select: 'sets'
+                    }
+                )
+                .select('-__v -createdAt -updatedAt')
+                .sort({ orderIndex: 1 })
+        ]);
 
+        if(!workout) {
+            throw new APIError(404, 'Workout not found');
+        }
+
+        return { workout, exercises };
     }
     
     async updateWorkout(workoutId, updateData) {
