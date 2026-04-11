@@ -11,9 +11,9 @@ const splitSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    workoutTemplates: [{
+    Routines: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'WorkoutTemplate'
+        ref: 'Routine'
     }]
 }, { timestamps: true });
 
