@@ -13,6 +13,12 @@ export default class RoutineService {
         this.userService = userService;
     }
 
+    supportsTransactions() {
+        const topologyType = mongoose.connection.client?.topology?.description?.type;
+
+        return topologyType === 'ReplicaSetWithPrimary' || topologyType === 'Sharded';
+    }
+
     async validateExerciseIds(exercisesData) {
         if (!Array.isArray(exercisesData) || !exercisesData.length) {
             throw new APIError(400, 'exercises must be a non-empty array');
@@ -133,26 +139,28 @@ export default class RoutineService {
     }
 
     async createRoutine(userId, routineData, exercisesData) {
-        const [session] = await Promise.all([
-            mongoose.startSession(),
-            this.validateExerciseIds(exercisesData)
-        ]);
+        await this.validateExerciseIds(exercisesData);
+
+        const session = await mongoose.startSession();
+        const useTransaction = this.supportsTransactions();
+        let routineId = null;
+        let routineExerciseSetDocs = [];
 
         try {
-            session.startTransaction();
+            if (useTransaction) {
+                session.startTransaction();
+            }
 
-            // Create routine
             const routine = await this.Routine.create([{
                 userId,
                 name: routineData.name,
                 description: routineData.description,
                 isPublic: routineData.isPublic
-            }], { session });
+            }], useTransaction ? { session } : undefined);
 
-            const routineId = routine[0]._id;
+            routineId = routine[0]._id;
 
-            // Pre-generate set IDs (IMPORTANT)
-            const routineExerciseSetDocs = exercisesData.map((exerciseData) => {
+            routineExerciseSetDocs = exercisesData.map((exerciseData) => {
                 const _id = new mongoose.Types.ObjectId();
 
                 return {
@@ -165,17 +173,21 @@ export default class RoutineService {
             const routineExerciseDocs = exercisesData.map((exerciseData, index) => ({
                 routineId,
                 exerciseId: exerciseData.exerciseId,
-                orderIndex: index, // safer than trusting client
+                orderIndex: index,
                 setsId: routineExerciseSetDocs[index]._id
             }));
 
-            // Insert BOTH in parallel
-            await Promise.all([
-                this.RoutineExerciseSet.insertMany(routineExerciseSetDocs, { session }),
-                this.RoutineExercise.insertMany(routineExerciseDocs, { session })
-            ]);
+            if (useTransaction) {
+                await Promise.all([
+                    this.RoutineExerciseSet.insertMany(routineExerciseSetDocs, { session }),
+                    this.RoutineExercise.insertMany(routineExerciseDocs, { session })
+                ]);
 
-            await session.commitTransaction();
+                await session.commitTransaction();
+            } else {
+                await this.RoutineExerciseSet.insertMany(routineExerciseSetDocs);
+                await this.RoutineExercise.insertMany(routineExerciseDocs);
+            }
 
             return {
                 routineId,
@@ -190,9 +202,17 @@ export default class RoutineService {
                     sets: ex.sets
                 }))
             };
-
         } catch (error) {
-            await session.abortTransaction();
+            if (useTransaction && session.inTransaction()) {
+                await session.abortTransaction();
+            } else if (routineId) {
+                await Promise.allSettled([
+                    this.RoutineExercise.deleteMany({ routineId }),
+                    this.RoutineExerciseSet.deleteMany({ _id: { $in: routineExerciseSetDocs.map(doc => doc._id) } }),
+                    this.Routine.deleteOne({ _id: routineId })
+                ]);
+            }
+
             throw error;
         } finally {
             session.endSession();
