@@ -8,6 +8,7 @@ import userRoutes from './modules/users/user.route.js';
 import exerciseRoutes from './modules/exercises/exercise.routes.js';
 import exerciseRequestRoutes from './modules/exerciseRequest/exerciseRequest.routes.js';
 import routineRoutes from './modules/routines/routes/routine.route.js';
+import splitRoutes from './modules/splits/split.route.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
