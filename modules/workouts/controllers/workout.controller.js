@@ -82,3 +82,19 @@ export const deleteWorkout = async (req, res, next) => {
         next(new APIError(err.statusCode || 500, err.message || 'Failed to delete workout'));
     }
 }
+
+// @Desc: Mark Workout as Completed
+// @Route: PATCH /api/v1/workout/:id
+// @Access: Private
+export const completeWorkout = async (req, res, next) => {
+    try {
+        const workoutId = req.params.id;
+        const userId = req.user.id;
+
+        const workout = await workoutService.completeWorkout(workoutId, userId);
+
+        return res.status(200).json(new APIResponse(200, workout, 'Workout marked as completed successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to mark workout as completed'));
+    }
+}

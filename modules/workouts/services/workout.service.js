@@ -253,8 +253,18 @@ export default class WorkoutService {
         return {};
     }
 
-    async completeWorkout(workoutId) {
+    async completeWorkout(workoutId, userId) {
+        const workout = await this.workoutModel.findOne({ _id: workoutId, userId });
 
+        if (!workout) {
+            throw new APIError(404, 'Workout not found');
+        }
+
+        workout.endTime = new Date();
+        workout.duration = Math.floor((workout.endTime - workout.startTime) / 1000); // duration in seconds
+        await workout.save();
+
+        return this.getWorkoutById(workoutId, userId);
     }
 
     async getWorkoutSummary(workoutId) {
