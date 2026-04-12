@@ -164,36 +164,93 @@ export default class WorkoutService {
         return { workout, exercises };
     }
     
-    async updateWorkout(workoutId, updateData) {
+    async updateWorkout(workoutId, userId, updateData = {}) {
+        const workout = await this.workoutModel.findById(workoutId);
 
+        if (!workout) {
+            throw new APIError(404, 'Workout not found');
+        }
+
+        if (workout.userId.toString() !== userId.toString()) {
+            throw new APIError(403, 'Access denied');
+        }
+
+        const shouldUpdateExercises = Object.prototype.hasOwnProperty.call(updateData, 'exercises');
+
+        if (Object.prototype.hasOwnProperty.call(updateData, 'description')) {
+            workout.description = updateData.description;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(updateData, 'routineId')) {
+            workout.routineId = updateData.routineId || null;
+        }
+
+        await workout.save();
+
+        if (shouldUpdateExercises) {
+            await this.validateExercises(updateData.exercises);
+
+            const existingExercises = await this.workoutExerciseModel.find({ workoutId }).select('setsId');
+            const existingSetIds = existingExercises
+                .map((exercise) => exercise.setsId)
+                .filter(Boolean);
+
+            await Promise.all([
+                this.workoutExerciseModel.deleteMany({ workoutId }),
+                this.setModel.deleteMany({ _id: { $in: existingSetIds } })
+            ]);
+
+            const setDocs = updateData.exercises.map((exerciseData) => {
+                const _id = new mongoose.Types.ObjectId();
+
+                return {
+                    _id,
+                    sets: Array.isArray(exerciseData.sets) ? exerciseData.sets : []
+                };
+            });
+
+            const workoutExerciseDocs = updateData.exercises.map((exerciseData, index) => ({
+                workoutId,
+                exerciseId: exerciseData.exerciseId,
+                mode: exerciseData.mode,
+                orderIndex: index,
+                setsId: setDocs[index]._id
+            }));
+
+            await Promise.all([
+                this.setModel.insertMany(setDocs),
+                this.workoutExerciseModel.insertMany(workoutExerciseDocs)
+            ]);
+        }
+
+        return this.getWorkoutById(workoutId, userId);
     }
 
-    async deleteWorkout(workoutId) {
+    async deleteWorkout(workoutId, userId) {
+        const [workout, exercises] = await Promise.all([
+            this.workoutModel.findById(workoutId),
+            this.workoutExerciseModel.find({ workoutId }).select('setsId')
+        ]);
 
-    }
+        if (!workout) {
+            throw new APIError(404, 'Workout not found');
+        }
 
-    async addExerciseToWorkout(workoutId, exerciseData) {
+        if (workout.userId.toString() !== userId.toString()) {
+            throw new APIError(403, 'Access denied');
+        }
 
-    }
+        const setIds = exercises
+            .map((exercise) => exercise.setsId)
+            .filter(Boolean);
 
-    async removeExerciseFromWorkout(workoutId, workoutExerciseId) {
+        await Promise.all([
+            this.workoutExerciseModel.deleteMany({ workoutId }),
+            this.setModel.deleteMany({ _id: { $in: setIds } }),
+            workout.deleteOne()
+        ]);
 
-    }
-
-    async updateExerciseInWorkout(workoutId, workoutExerciseId, updateData) {
-
-    }
-
-    async addSetToExercise(workoutId, workoutExerciseId, setData) {
-
-    }
-
-    async updateSetInExercise(workoutId, workoutExerciseId, setId, updateData) {
-
-    }
-
-    async removeSetFromExercise(workoutId, workoutExerciseId, setId) {
-
+        return {};
     }
 
     async completeWorkout(workoutId) {

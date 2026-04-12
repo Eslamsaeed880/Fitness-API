@@ -51,3 +51,34 @@ export const getWorkoutById = async (req, res, next) => {
         next(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve workout'));
     }
 }
+
+// @Desc: Update workout by ID
+// @Route: PUT /api/v1/workout/:id
+// @Access: Private
+export const updateWorkout = async (req, res, next) => {
+    try {
+        const workoutId = req.params.id;
+        const userId = req.user.id;
+        const workout = await workoutService.updateWorkout(workoutId, userId, req.body);
+
+        return res.status(200).json(new APIResponse(200, workout, 'Workout updated successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to update workout'));
+    }
+}
+
+// @Desc: Delete workout by ID
+// @Route: DELETE /api/v1/workout/:id
+// @Access: Private
+export const deleteWorkout = async (req, res, next) => {
+    try {
+        const workoutId = req.params.id;
+        const userId = req.user.id;
+
+        await workoutService.deleteWorkout(workoutId, userId);
+
+        return res.status(200).json(new APIResponse(200, {}, 'Workout deleted successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to delete workout'));
+    }
+}
