@@ -98,3 +98,19 @@ export const completeWorkout = async (req, res, next) => {
         next(new APIError(err.statusCode || 500, err.message || 'Failed to mark workout as completed'));
     }
 }
+
+// @Desc: Get workout summary
+// @Route: GET /api/v1/workout/:id/summary
+// @Access: Private
+export const getWorkoutSummary = async (req, res, next) => {
+    try {
+        const workoutId = req.params.id;
+        const userId = req.user.id;
+
+        const summary = await workoutService.getWorkoutSummary(workoutId, userId);
+
+        return res.status(200).json(new APIResponse(200, summary, 'Workout summary retrieved successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve workout summary'));
+    }
+}

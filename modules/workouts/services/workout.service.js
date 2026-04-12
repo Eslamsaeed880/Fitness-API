@@ -268,7 +268,45 @@ export default class WorkoutService {
     }
 
     async getWorkoutSummary(workoutId) {
+        const [workout, exercises] = await Promise.all([
+            this.workoutModel.findOne({ _id: workoutId, endTime: { $ne: null } }),
+            this.workoutExerciseModel.find({ workoutId })
+                .populate('exerciseId', 'name primaryMuscle')
+                .populate('setsId', 'sets')
+        ]);
+        
+        
+        if (!workout) {
+            throw new APIError(404, 'Completed workout not found');
+        }
 
+        const totalExercises = exercises.length;
+        const [totalSets, totalReps, distance] = await Promise.all([
+            exercises.reduce((sum, ex) => sum + (ex.setsId?.sets.length || 0), 0),
+            exercises.reduce((sum, ex) => {
+                const sets = ex.setsId?.sets || [];
+                return sum + sets.reduce((setSum, set) => setSum + (set.reps || 0), 0);
+            }, 0),
+            exercises.reduce((sum, ex) => {
+                const sets = ex.setsId?.sets || [];
+                return sum + sets.reduce((setSum, set) => setSum + (set.distance || 0), 0);
+            }, 0)
+        ]);
+
+        return {
+            workoutId,
+            totalExercises,
+            totalSets,
+            totalReps,
+            distance,
+            duration: workout.duration,
+            exercises: exercises.map(ex => ({
+                exerciseId: ex.exerciseId._id,
+                name: ex.exerciseId.name,
+                primaryMuscle: ex.exerciseId.primaryMuscle,
+                sets: ex.setsId?.sets || []
+            }))
+        };
     }
 
     async getWorkoutsByUser(userId, filters) {
