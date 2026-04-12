@@ -1,8 +1,17 @@
 import APIError from '../../utils/APIError.js';
 import APIResponse from '../../utils/APIResponse.js';
 import AuthService from './auth.service.js';
+import { enqueueEmailJob } from '../../infrastructure/queue/email.queue.js';
 
 const authService = new AuthService();
+
+const enqueueAuthEmailEvent = async ({ type, to, subject, html }) => {
+    try {
+        await enqueueEmailJob({ type, to, subject, html });
+    } catch (error) {
+        console.error(`[AuthEmailQueue] Failed to enqueue ${type}:`, error.message);
+    }
+};
 
 const handleAuthError = (error, next, fallbackStatus, fallbackMessage) => {
     if (error instanceof APIError) {
@@ -18,15 +27,16 @@ export const signUp = async (req, res, next) => {
 
         const { user, token } = await authService.signup(fullName, username, email, password);
 
-        /* For welcome email, we can enqueue background jobs like this:
-
-        await enqueueEmailEvent({
-            eventId: crypto.randomUUID(),
-            to: email,
-            subject: 'Welcome to Our Social Media App!',
-            html: `<h2>Hi ${username},</h2><br><br>Thank you for signing up for our social media app! We're excited to have you on board.<br><br>Best regards,<br>The Team`,
+        await enqueueAuthEmailEvent({
+            type: 'auth.signup',
+            to: user.email,
+            subject: 'Welcome to Fitness API',
+            html: `
+                <h2>Welcome, ${user.fullName || username}!</h2>
+                <p>Your account was created successfully.</p>
+                <p>Username: <strong>${user.username}</strong></p>
+            `
         });
-        */
 
         const response = new APIResponse(201, { user, token }, "User registered successfully");
         res.status(response.statusCode).json(response);
@@ -66,6 +76,17 @@ export const googleLoginCallback = async (req, res, next) => {
     try {
         const { user, token } = await authService.googleLoginCallback(req.user);
 
+        await enqueueAuthEmailEvent({
+            type: 'auth.google',
+            to: user.email,
+            subject: 'Google authentication successful',
+            html: `
+                <h2>Hello ${user.fullName || user.username},</h2>
+                <p>Your Google authentication was successful.</p>
+                <p>If this was not you, please secure your account immediately.</p>
+            `
+        });
+
         const response = new APIResponse(200, { user, token }, "Google authentication successful");
         res.status(response.statusCode).json(response);
     } catch (error) {
@@ -78,50 +99,18 @@ export const resetPassword = async (req, res, next) => {
         const { email } = req.body;
         const { resetLink, user } = await authService.resetPassword(email);
 
-        /* Enqueue password reset email job like this:
-        await enqueueEmailEvent({
-            eventId: crypto.randomUUID(),
-            to: email,
-            subject: 'Password Reset Request',
+        await enqueueAuthEmailEvent({
+            type: 'auth.reset_password',
+            to: user.email,
+            subject: 'Password reset request',
             html: `
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-                    <h2 style="color: #333;">Reset Your Password</h2>
-                    <p>Hello ${user.username},</p>
-                    <p>We received a request to reset your password. If you made this request, click the button below:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${resetLink}" 
-                           style="background-color: #007bff; color: white; padding: 15px 30px; 
-                                  text-decoration: none; border-radius: 5px; display: inline-block;
-                                  font-weight: bold; font-size: 16px;">
-                            Reset My Password
-                        </a>
-                    </div>
-                    
-                    <p style="color: #666; font-size: 14px;">
-                        <strong>This link will expire in 1 hour</strong> for security reasons.
-                    </p>
-                    
-                    <p style="color: #666; font-size: 14px;">
-                        If you didn't request this password reset, please ignore this email. 
-                        Your password will remain unchanged.
-                    </p>
-                    
-                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-                    
-                    <p style="color: #888; font-size: 12px;">
-                        If the button above doesn't work, copy and paste this link into your browser:<br>
-                        <a href="${resetLink}" style="color: #007bff; word-break: break-all;">${resetLink}</a>
-                    </p>
-                    
-                    <p style="color: #888; font-size: 12px;">
-                        This email was sent from our e-commerce platform. Please do not reply to this email.
-                    </p>
-                </div>
-            `,
+                <h2>Reset your password</h2>
+                <p>Hello ${user.fullName || user.username},</p>
+                <p>Use the link below to reset your password (valid for 1 hour):</p>
+                <p><a href="${resetLink}">${resetLink}</a></p>
+                <p>If you did not request this, you can ignore this email.</p>
+            `
         });
-
-        */
 
         res.status(200).json({
             message: "Password reset email sent successfully. Please check your inbox."
@@ -137,25 +126,19 @@ export const confirmResetPassword = async (req, res, next) => {
         const { password } = req.body;
         const { token } = req.query;
 
-        await authService.confirmResetPassword(token, password);
+        const user = await authService.confirmResetPassword(token, password);
 
-        /* For sending password reset confirmation email, we can enqueue a job like this:
-        await enqueueEmailEvent({
-            eventId: crypto.randomUUID(),
+        await enqueueAuthEmailEvent({
+            type: 'auth.confirm_reset_password',
             to: user.email,
-            subject: 'Password Reset Successful',
+            subject: 'Password reset successful',
             html: `
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-                    <h2 style="color: #28a745;">✅ Password Reset Successful</h2>
-                    <p>Hello ${user.name},</p>
-                    <p>Your password has been successfully reset. You can now log in with your new password.</p>
-                    <p style="color: #666; font-size: 14px;">
-                        If you didn't make this change, please contact our support team immediately.
-                    </p>
-                </div>
-            `,
+                <h2>Password updated successfully</h2>
+                <p>Hello ${user.fullName || user.username},</p>
+                <p>Your password was changed successfully.</p>
+                <p>If you did not perform this action, contact support immediately.</p>
+            `
         });
-        */
 
         const response = new APIResponse(200, null, "Password reset successful");
         res.status(response.statusCode).json(response);

@@ -1,15 +1,29 @@
 import { Worker } from 'bullmq';
+import nodemailer from 'nodemailer';
 import EmailService from '../email/email.service.js';
 import { getBullmqConnection } from '../../config/bullmq.connection.js';
+import config from '../../config/config.js';
 
-const emailService = new EmailService();
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: config.mail.sender,
+        pass: config.mail.password
+    }
+});
+
+const emailService = new EmailService(transporter);
 
 export const emailWorker = new Worker(
     'email',
     async (job) => {
         const { type, from, to, subject, html } = job.data;
 
-        return await emailService.sendEmail({ from, to, subject, html }); 
+        return await emailService.sendEmail(
+            to,
+            subject,
+            html
+        ); 
     },
     { connection: getBullmqConnection() }
 );
