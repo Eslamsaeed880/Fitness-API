@@ -114,3 +114,31 @@ export const getWorkoutSummary = async (req, res, next) => {
         next(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve workout summary'));
     }
 }
+
+// @Desc: Get workouts by user
+// @Route: GET /api/v1/workout/:id/user
+// @Access: Private
+export const getWorkoutsByUser = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const filters = req.query; // Optional filters like date range, completion status, etc.
+        const workouts = await workoutService.getWorkoutsByUser(userId, filters);
+        return res.status(200).json(new APIResponse(200, workouts, 'Workouts retrieved successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve workouts'));
+    }
+}
+
+// @Desc: Get workouts by routine
+// @Route: GET /api/v1/workout/:id/routine
+// @Access: Private
+export const getWorkoutsByRoutine = async (req, res, next) => {
+    try {
+        const routineId = req.params.id;
+        const filters = req.query; // Optional filters like date range, completion status, etc.
+        const workouts = await workoutService.getWorkoutsByRoutine(routineId, filters);
+        return res.status(200).json(new APIResponse(200, workouts, 'Workouts retrieved successfully'));
+    } catch (err) {
+        next(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve workouts'));
+    }
+}

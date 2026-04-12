@@ -310,10 +310,12 @@ export default class WorkoutService {
     }
 
     async getWorkoutsByUser(userId, filters) {
-
+        const workouts = await this.workoutModel.find({ userId, ...filters }).sort({ createdAt: -1 });
+        return workouts;
     }
 
-    async getWorkoutsByRoutine(routineId) {
-
+    async getWorkoutsByRoutine(routineId, filters) {
+        const workouts = await this.workoutModel.find({ routineId, ...filters }).sort({ createdAt: -1 });
+        return workouts;
     }
 }
