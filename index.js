@@ -10,6 +10,7 @@ import exerciseRequestRoutes from './modules/exerciseRequest/exerciseRequest.rou
 import routineRoutes from './modules/routines/routes/routine.route.js';
 import splitRoutes from './modules/splits/split.route.js';
 import personalRecordRoutes from './modules/statistics/routes/personalRecord.route.js';
+import bodyStatRoutes from './modules/statistics/routes/bodyStat.route.js';
 import workoutRoutes from './modules/workouts/routes/workout.route.js';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -40,6 +41,7 @@ app.use('/api/v1/exercise-requests', exerciseRequestRoutes);
 app.use('/api/v1/routines', routineRoutes);
 app.use('/api/v1/workout', workoutRoutes);
 app.use('/api/v1/personal-records', personalRecordRoutes);
+app.use('/api/v1/body-stats', bodyStatRoutes);
 // app.use('/api/v1/workout-session', workoutSessionRoutes);
 // app.use('/api/v1/posts', postRoutes);
 // app.use('/api/v1/following-details', followingRoutes);
