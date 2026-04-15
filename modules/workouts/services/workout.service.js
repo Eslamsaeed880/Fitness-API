@@ -1,5 +1,6 @@
 import APIError from "../../../utils/APIError.js";
 import mongoose from "mongoose";
+import { enqueueAddToPersonalRecordsJob } from "../infrastructure/personalRecords.queue.js";
 
 export default class WorkoutService {
     constructor(workoutModel, workoutExerciseModel, setModel, routineService, userService, exerciseService) {
@@ -262,7 +263,13 @@ export default class WorkoutService {
 
         workout.endTime = new Date();
         workout.duration = Math.floor((workout.endTime - workout.startTime) / 1000); // duration in seconds
+        
         await workout.save();
+
+        enqueueAddToPersonalRecordsJob({ userId, workoutId })
+            .catch((err) => {
+                console.error('[WorkoutService] Failed to enqueue personal record job:', err.message);
+            });
 
         return this.getWorkoutById(workoutId, userId);
     }

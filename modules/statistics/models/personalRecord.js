@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const exercisePRsSchema = new mongoose.Schema({
+const personalRecord = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -28,5 +28,7 @@ const exercisePRsSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-const ExercisePR = mongoose.model('ExercisePR', exercisePRsSchema);
-export default ExercisePR;
+personalRecord.index({ userId: 1, exerciseId: 1 }, { unique: true });
+
+const PersonalRecord = mongoose.model('PersonalRecord', personalRecord);
+export default PersonalRecord;
