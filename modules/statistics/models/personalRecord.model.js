@@ -13,22 +13,20 @@ const personalRecord = new mongoose.Schema({
     },
     weightKg: {
         type: Number,
-        min: 0,
-        required: true
+        min: 0
     },
     reps: {
         type: Number,
-        min: 1,
-        required: true
+        min: 1
     },
     volume: {
         type: Number,
-        min: 0,
-        required: true
+        min: 0
     }
 }, { timestamps: true });
 
 personalRecord.index({ userId: 1, exerciseId: 1 }, { unique: true });
 
 const PersonalRecord = mongoose.model('PersonalRecord', personalRecord);
+
 export default PersonalRecord;
