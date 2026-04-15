@@ -1,6 +1,6 @@
 import APIError from "../../../utils/APIError.js";
 import mongoose from "mongoose";
-import { enqueueAddToPersonalRecordsJob } from "../infrastructure/personalRecords.queue.js";
+import { enqueueAddToPersonalRecordsJob } from "../../statistics/infrastructure/personalRecords.queue.js";
 
 export default class WorkoutService {
     constructor(workoutModel, workoutExerciseModel, setModel, routineService, userService, exerciseService) {
@@ -324,5 +324,13 @@ export default class WorkoutService {
     async getWorkoutsByRoutine(routineId, filters) {
         const workouts = await this.workoutModel.find({ routineId, ...filters }).sort({ createdAt: -1 });
         return workouts;
+    }
+
+    async getExercisesByWorkout(workoutId) {
+        const exercises = await this.workoutExerciseModel.find({ workoutId })
+            .populate('setsId')
+            .lean();
+            
+        return exercises;
     }
 }

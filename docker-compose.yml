@@ -134,7 +134,7 @@ services:
       - /build/node_modules
     networks:
       - fitness-network
-    command: node modules/workouts/infrastructure/AddToPersonalRecords.worker.js
+    command: node modules/statistics/infrastructure/personalRecords.worker.js
 
 volumes:
   mongo_data:

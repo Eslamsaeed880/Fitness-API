@@ -2,11 +2,13 @@ import 'dotenv/config';
 import { Worker } from 'bullmq';
 import { getBullmqConnection } from '../../../config/bullmq.connection.js';
 import connectDB from '../../../config/mongodb.js';
-import PersonalRecordService from '../../statistics/services/personalRecord.service.js';
-import PersonalRecord from '../../statistics/models/personalRecord.js';
-import WorkoutExercise from '../models/workoutExercise.model.js';
-import '../models/set.model.js';
+import PersonalRecordService from '../services/personalRecord.service.js';
+import PersonalRecord from '../models/personalRecord.js';
+import WorkoutService from '../../workouts/services/workout.service.js';
+import WorkoutExercise from '../../workouts/models/workoutExercise.model.js';
+import Set from '../../workouts/models/set.model.js';
 
+const workoutService = new WorkoutService(null, WorkoutExercise, Set, null, null, null);
 
 console.log('[AddToPersonalRecordsWorker] Initializing...');
 await connectDB();
@@ -22,10 +24,8 @@ export const addToPersonalRecordsWorker = new Worker(
         }
 
         const personalRecordService = new PersonalRecordService(PersonalRecord);
-        
-        const exercises = await WorkoutExercise.find({ workoutId })
-            .populate('setsId')
-            .lean();
+
+        const exercises = await workoutService.getExercisesByWorkout(workoutId);
 
         const exercisesStructured = exercises
             .map((exercise) => {
