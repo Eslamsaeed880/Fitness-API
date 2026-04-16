@@ -1,14 +1,21 @@
 import APIError from "../../../utils/APIError.js";
+import { getFromCache, invalidateCache, setInCache } from "../../../infrastructure/cache/cacheAside.js";
 
 export default class BodyStatService {
     constructor(BodyStatModel) {
         this.BodyStatModel = BodyStatModel;
+        this.prefix = 'body-stats';
     }
 
     async addBodyStat(userId, bodyStats) {
         try {
             const newStat = new this.BodyStatModel({ userId, ...bodyStats });
-            await newStat.save();
+
+            const [] = await Promise.all([
+                newStat.save(),
+                invalidateCache(`${this.prefix}:${userId}`)
+            ]);
+
             return { success: true };
         } catch (err) {
             console.error('Error in addBodyStat:', err);
@@ -18,7 +25,15 @@ export default class BodyStatService {
 
     async getBodyStatsForUser(userId) {
     try {
-        return await this.BodyStatModel.find({ userId }).sort({ createdAt: -1 }).lean();
+        const key = `${this.prefix}:${userId}`;
+        const cachedStats = await getFromCache(key);
+        if (cachedStats) {
+            return cachedStats;
+        }
+
+        const stats = await this.BodyStatModel.find({ userId }).sort({ createdAt: -1 }).lean();
+        await setInCache(key, stats);
+        return stats;
     } catch (err) {
         console.error('Error in getBodyStatsForUser:', err);
         throw new APIError(500, 'Failed to fetch body stats');
@@ -28,6 +43,12 @@ export default class BodyStatService {
     async deleteBodyStat(userId, bodyStatId) {
         try {
             const result = await this.BodyStatModel.deleteOne({ userId, _id: bodyStatId });
+
+            const [] = await Promise.all([
+                invalidateCache(`${this.prefix}:${userId}`),
+                invalidateCache(`${this.prefix}:${bodyStatId}:${userId}`)
+            ]);
+
             return { success: result.deletedCount > 0 };
         } catch (err) {
             console.error('Error in deleteBodyStat:', err);
@@ -53,7 +74,12 @@ export default class BodyStatService {
                 goal: stat.goal
             });
 
-            await stat.save();
+            const [] = await Promise.all([
+                stat.save(),
+                setInCache(`${this.prefix}:${bodyStatId}:${userId}`, stat),
+                invalidateCache(`${this.prefix}:${userId}`)
+            ]);
+
             return { success: true };
         } catch (err) {
             console.error('Error in updateBodyStat:', err);
@@ -63,10 +89,19 @@ export default class BodyStatService {
 
     async getBodyStatById(userId, bodyStatId) {
         try {
+            const key = `${this.prefix}:${bodyStatId}:${userId}`;
+            const cachedStat = await getFromCache(key);
+            if (cachedStat) {
+                return cachedStat;
+            }
+
             const stat = await this.BodyStatModel.findOne({ userId, _id: bodyStatId }).lean();
             if (!stat) {
                 throw new APIError(404, 'Body stat not found');
             }
+
+            await setInCache(key, stat);
+
             return stat;
         } catch (err) {
             console.error('Error in getBodyStatById:', err);

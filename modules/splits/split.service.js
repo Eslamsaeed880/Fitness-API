@@ -1,6 +1,5 @@
 import APIError from "../../utils/APIError.js";
 import { getFromCache, invalidateCache, setInCache } from "../../infrastructure/cache/cacheAside.js";
-import { set } from "mongoose";
 
 class SplitService {
     constructor(splitModel) {
