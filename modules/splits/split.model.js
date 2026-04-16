@@ -11,10 +11,15 @@ const splitSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    Routines: [{
+    routines: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Routine'
-    }]
+    }],
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }
 }, { timestamps: true });
 
 const Split = mongoose.model('Split', splitSchema);

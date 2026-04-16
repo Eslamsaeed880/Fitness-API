@@ -42,6 +42,7 @@ app.use('/api/v1/routines', routineRoutes);
 app.use('/api/v1/workout', workoutRoutes);
 app.use('/api/v1/personal-records', personalRecordRoutes);
 app.use('/api/v1/body-stats', bodyStatRoutes);
+app.use('/api/v1/splits', splitRoutes);
 // app.use('/api/v1/workout-session', workoutSessionRoutes);
 // app.use('/api/v1/posts', postRoutes);
 // app.use('/api/v1/following-details', followingRoutes);

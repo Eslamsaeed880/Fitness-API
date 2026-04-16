@@ -10,14 +10,16 @@ import {
  
 const router = express.Router();
 
-router.get('/', isAuth, getAllSplits);
+router.use(isAuth);
 
-router.get('/:id', isAuth, getSplitById);
+router.get('/', getAllSplits);
 
-router.post('/', isAuth, createSplit);
+router.get('/:id', getSplitById);
 
-router.put('/:id', isAuth, updateSplit);
+router.post('/', createSplit);
 
-router.delete('/:id', isAuth, deleteSplit);
+router.put('/:id', updateSplit);
+
+router.delete('/:id', deleteSplit);
 
 export default router;
