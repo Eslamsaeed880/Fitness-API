@@ -3,6 +3,7 @@ import { Worker } from 'bullmq';
 import Exercise from '../exercise.model.js';
 import APIError from '../../../utils/APIError.js';
 import MediaService from '../../../infrastructure/media/media.service.js';
+import { invalidateCache } from '../../../infrastructure/cache/cache.js';
 import { getBullmqConnection } from '../../../config/bullmq.connection.js';
 import connectDB from '../../../config/mongodb.js';
 import { EXERCISE_JOB_TYPES, EXERCISE_QUEUE_NAME } from './exercise.jobs.js';
@@ -12,9 +13,21 @@ await connectDB();
 
 const mediaService = new MediaService();
 
+async function invalidateExerciseCaches(exerciseId) {
+    const tasks = [invalidateCache('exercises:*')];
+
+    if (exerciseId) {
+        tasks.push(invalidateCache(`exercise:${exerciseId}`));
+    }
+
+    await Promise.all(tasks);
+}
+
 export const exerciseWorker = new Worker(
     EXERCISE_QUEUE_NAME,
     async (job) => {
+        const exerciseId = job?.data?.exerciseId;
+
         try {
             switch (job.name) {
                 case EXERCISE_JOB_TYPES.CREATE: {
@@ -88,6 +101,12 @@ export const exerciseWorker = new Worker(
         } catch (err) {
             console.error('[ExerciseWorker] Job failed:', err);
             throw err;
+        } finally {
+            try {
+                await invalidateExerciseCaches(exerciseId);
+            } catch (invalidateErr) {
+                console.error('[ExerciseWorker] Cache invalidation failed:', invalidateErr);
+            }
         }
     },
     { connection: getBullmqConnection() }

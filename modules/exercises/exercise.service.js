@@ -1,12 +1,30 @@
 import APIError from "../../utils/APIError.js";
 import MediaService from "../../infrastructure/media/media.service.js";
 import { enqueueExerciseCreateJob } from "./infrastructure/exercise.queue.js";
+import { setInCache, getFromCache, invalidateCache } from "../../infrastructure/cache/cache.js";
 
 export default class ExerciseService {
     constructor(exerciseModel, muscleService) {
         this.Exercise = exerciseModel;
         this.muscleService = muscleService;
         this.mediaService = new MediaService();
+        this.ttl = 360; // Cache TTL in seconds (6 minutes)
+    }
+
+    getUserExercisesCacheKey(page, limit, search, sortBy, sortOrder) {
+        return `exercises:page:${page}:limit:${limit}:search:${search}:sortby:${sortBy}:sortorder:${sortOrder}`;
+    }
+
+    getExerciseCacheKey(exerciseId) {
+        return `exercise:${exerciseId}`;
+    }
+
+    async invalidateExercisesCache() {
+        return await invalidateCache(`exercises:*`);
+    }
+
+    async invalidateExerciseCacheKey(exerciseId) {
+        return await invalidateCache(this.getExerciseCacheKey(exerciseId));
     }
 
     toEquipmentsArray(value) {
@@ -35,11 +53,18 @@ export default class ExerciseService {
     }
 
     async getAllExercises(page, limit, search, sortBy, sortOrder) {
+        const key = this.getUserExercisesCacheKey(page, limit, search, sortBy, sortOrder);
+        const cachedExercises = await getFromCache(key);
+
+        if (cachedExercises) {
+            return cachedExercises;
+        }
+
         const skip = (page - 1) * limit;
         const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
         const searchRegex = new RegExp(search, 'i');
 
-        return {
+        const responseStructure = {
             exercises: await this.Exercise.find({ name: { $regex: searchRegex } })
                 .skip(skip)
                 .limit(limit)
@@ -49,15 +74,28 @@ export default class ExerciseService {
             totalResults: await this.Exercise.countDocuments({ name: { $regex: searchRegex } }),
             totalPages: Math.ceil(await this.Exercise.countDocuments({ name: { $regex: searchRegex } }) / limit)
         };
+
+        await setInCache(key, responseStructure, this.ttl);
+
+        return responseStructure;
     }
 
     async getExerciseById(exerciseId) {
+        const key = this.getExerciseCacheKey(exerciseId);
+        const cachedExercise = await getFromCache(key);
+
+        if (cachedExercise) {
+            return cachedExercise;
+        }
+
         const exercise = await this.Exercise.findById(exerciseId);
 
         if (!exercise) {
             throw new APIError(404, 'Exercise not found.');
         }
-        
+
+        await setInCache(key, exercise, this.ttl);
+
         return exercise;
     }
 
@@ -97,6 +135,8 @@ export default class ExerciseService {
             throw new APIError(500, 'Failed to queue exercise media processing.');
         }
 
+        await this.invalidateExercisesCache();
+
         return exercise;
     }
 
@@ -123,6 +163,11 @@ export default class ExerciseService {
 
         await exercise.save();
 
+        const [] = await Promise.all([
+            this.invalidateExerciseCacheKey(exerciseId),
+            this.invalidateExercisesCache()
+        ]);
+
         return exercise;
     }
 
@@ -139,7 +184,12 @@ export default class ExerciseService {
 
         const exercise = await new this.Exercise(exerciseData);
         exercise.status = 'ready';
-        await exercise.save();
+
+        const [] = await Promise.all([
+            await exercise.save(),
+            this.invalidateExercisesCache()
+        ]);
+
 
         return exercise;
     }
@@ -154,6 +204,12 @@ export default class ExerciseService {
         if (!exercise) {
             throw new APIError(404, 'Exercise not found.');
         }
+
+        const [] = await Promise.all([
+            this.invalidateExerciseCacheKey(exerciseId),
+            this.invalidateExercisesCache()
+        ]);
+
         return exercise;
     }
 }
