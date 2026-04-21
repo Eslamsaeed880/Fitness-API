@@ -10,7 +10,7 @@ export async function getFromCache(key) {
         const cachedData = await client.get(key);
         if (cachedData) {
             const parsedData = JSON.parse(cachedData);
-            console.log(`Cache hit for key: ${key}\nCached data:`, parsedData);
+            console.log(`Cache hit for key: ${key}`);
             return parsedData;
         }
 
@@ -28,7 +28,7 @@ export async function setInCache(key, value, ttl = 3600) {
     try {
         const stringValue = JSON.stringify(value);
         await client.setEx(key, ttl, stringValue);
-        console.log(`Data cached for key: ${key}\nCached data:`, value);
+        console.log(`Data cached for key: ${key}`);
     } catch (error) {
         console.error('Error setting cache:', error);
         throw new APIError(500, 'Error setting cache');
@@ -48,16 +48,6 @@ export async function invalidateCache(key) {
     } catch (error) {
         console.error('Error invalidating cache:', error);
         throw new APIError(500, 'Error invalidating cache');
-    }
-}
-
-export async function clearCache() {
-    try {
-        await client.flushAll();
-        console.log('All cache cleared');
-    } catch (error) {
-        console.error('Error clearing cache:', error);
-        throw new APIError(500, 'Error clearing cache');
     }
 }
 

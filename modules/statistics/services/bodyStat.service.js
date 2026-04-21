@@ -1,10 +1,25 @@
 import APIError from "../../../utils/APIError.js";
-import { getFromCache, invalidateCache, setInCache } from "../../../infrastructure/cache/cacheAside.js";
+import { getFromCache, invalidateCache, setInCache } from "../../../infrastructure/cache/cache.js";
 
 export default class BodyStatService {
     constructor(BodyStatModel) {
         this.BodyStatModel = BodyStatModel;
-        this.prefix = 'body-stats';
+    }
+
+    getUserStatsCacheKey(userId, page, limit) {
+        return `user:${userId}:body-stats`;
+    }
+
+    getBodyStatCacheKey(userId, bodyStatId) {
+        return `user:${userId}:body-stat:${bodyStatId}`;
+    }
+
+    async invalidateUserStatsCache(userId) {
+        return await invalidateCache(`user:${userId}:body-stats`);
+    }
+
+    async invalidateBodyStatCacheKey(userId, bodyStatId) {
+        return await invalidateCache(this.getBodyStatCacheKey(userId, bodyStatId));
     }
 
     async addBodyStat(userId, bodyStats) {
@@ -13,7 +28,7 @@ export default class BodyStatService {
 
             const [] = await Promise.all([
                 newStat.save(),
-                invalidateCache(`${this.prefix}:${userId}`)
+                await this.invalidateUserStatsCache(userId)
             ]);
 
             return { success: true };
@@ -25,7 +40,7 @@ export default class BodyStatService {
 
     async getBodyStatsForUser(userId) {
     try {
-        const key = `${this.prefix}:${userId}`;
+        const key = this.getUserStatsCacheKey(userId);
         const cachedStats = await getFromCache(key);
         if (cachedStats) {
             return cachedStats;
@@ -45,8 +60,8 @@ export default class BodyStatService {
             const result = await this.BodyStatModel.deleteOne({ userId, _id: bodyStatId });
 
             const [] = await Promise.all([
-                invalidateCache(`${this.prefix}:${userId}`),
-                invalidateCache(`${this.prefix}:${bodyStatId}:${userId}`)
+                await this.invalidateUserStatsCache(userId),
+                await this.invalidateBodyStatCacheKey(userId, bodyStatId)
             ]);
 
             return { success: result.deletedCount > 0 };
@@ -76,8 +91,8 @@ export default class BodyStatService {
 
             const [] = await Promise.all([
                 stat.save(),
-                setInCache(`${this.prefix}:${bodyStatId}:${userId}`, stat),
-                invalidateCache(`${this.prefix}:${userId}`)
+                setInCache(this.getBodyStatCacheKey(userId, bodyStatId), stat),
+                await this.invalidateUserStatsCache(userId)
             ]);
 
             return { success: true };
@@ -89,7 +104,7 @@ export default class BodyStatService {
 
     async getBodyStatById(userId, bodyStatId) {
         try {
-            const key = `${this.prefix}:${bodyStatId}:${userId}`;
+            const key = this.getBodyStatCacheKey(userId, bodyStatId);
             const cachedStat = await getFromCache(key);
             if (cachedStat) {
                 return cachedStat;

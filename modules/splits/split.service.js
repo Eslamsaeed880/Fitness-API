@@ -1,5 +1,5 @@
 import APIError from "../../utils/APIError.js";
-import { getFromCache, invalidateCache, setInCache } from "../../infrastructure/cache/cacheAside.js";
+import { getFromCache, invalidateCache, setInCache } from "../../infrastructure/cache/cache.js";
 
 class SplitService {
     constructor(splitModel) {
