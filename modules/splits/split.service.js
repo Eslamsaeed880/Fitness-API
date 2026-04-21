@@ -4,11 +4,27 @@ import { getFromCache, invalidateCache, setInCache } from "../../infrastructure/
 class SplitService {
     constructor(splitModel) {
         this.Split = splitModel;
-        this.prefix = 'splits';
+        this.prefix
+    }
+
+    getUserSplitsCacheKey(userId, page, limit, search, sortBy, sortOrder) {
+        return `user:${userId}:splits:page:${page}:limit:${limit}:search:${search}:sortby:${sortBy}:sortorder:${sortOrder}`;
+    }
+
+    getSplitCacheKey(userId, splitId) {
+        return `user:${userId}:split:${splitId}`;
+    }
+
+    async invalidateUserSplitsCache(userId) {
+        return await invalidateCache(`user:${userId}:splits:*`);
+    }
+
+    async invalidateSplitCacheKey(userId, splitId) {
+        return await invalidateCache(this.getSplitCacheKey(userId, splitId));
     }
 
     async getAllSplits(userId, page, limit, search, sortBy, sortOrder) {
-        const key = `${this.prefix}:${userId}:page=${page}&limit=${limit}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+        const key = this.getUserSplitsCacheKey(userId, page, limit, search, sortBy, sortOrder);
         const cachedSplits = await getFromCache(key);
         if (cachedSplits) {
             return cachedSplits;
@@ -35,7 +51,7 @@ class SplitService {
     }
 
     async getSplitById(userId, splitId) {
-        const key = `${this.prefix}:${splitId}&userId=${userId}`;
+        const key = this.getSplitCacheKey(userId, splitId);
         const cachedSplit = await getFromCache(key);
         if (cachedSplit) {
             return cachedSplit;
@@ -56,7 +72,7 @@ class SplitService {
         const split = new this.Split({ ...splitData, userId });
         const [] = await Promise.all([
             split.save(),
-            invalidateCache(`${this.prefix}:${userId}:*`)
+            this.invalidateUserSplitsCache(userId)
         ]);
 
         return split;
@@ -64,6 +80,10 @@ class SplitService {
 
     async updateSplit(userId, splitId, splitData) {
         const split = await this.Split.findOne({ _id: splitId, userId });
+
+        if (!split) {
+            throw new APIError(404, 'Split not found.');
+        }
 
         split.name = splitData.name || split.name;
         split.description = splitData.description || split.description;
@@ -75,13 +95,9 @@ class SplitService {
 
         const [] = await Promise.all([
             split.save(),
-            setInCache(`${this.prefix}:${splitId}&userId=${userId}`, split),
-            invalidateCache(`${this.prefix}:${userId}:*`)
+            setInCache(this.getSplitCacheKey(userId, splitId), split),
+            this.invalidateUserSplitsCache(userId)
         ]);
-
-        if (!split) {
-            throw new APIError(404, 'Split not found.');
-        }
 
         return split;
     }
@@ -90,8 +106,8 @@ class SplitService {
         const split = await this.Split.findOneAndDelete({ _id: splitId, userId });
 
         const [] = await Promise.all([
-            invalidateCache(`${this.prefix}:${splitId}&userId=${userId}`),
-            invalidateCache(`${this.prefix}:${userId}:*`)
+            invalidateCache(this.getSplitCacheKey(userId, splitId)),
+            this.invalidateUserSplitsCache(userId)
         ]);
 
         if (!split) {
