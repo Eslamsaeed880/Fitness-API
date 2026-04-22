@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema({
+    actorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -8,11 +13,16 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['like', 'comment'],
+        enum: ['LIKE', 'COMMENT', 'FOLLOW', 'ROUTINE_PUBLISHED', 'POST_PUBLISHED'],
         required: true
     },
-    message: {
+    entityType: {
         type: String,
+        enum: ['ROUTINE', 'POST', 'COMMENT', 'WORKOUT', 'USER'],
+        required: true
+    },
+    entityId: {
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     isRead: {
