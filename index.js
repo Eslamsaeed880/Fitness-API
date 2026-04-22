@@ -15,10 +15,15 @@ import workoutRoutes from './modules/workouts/routes/workout.route.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
-import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger.json' assert { type: 'json' };
+// import swaggerUi from 'swagger-ui-express';
+// import swaggerDocument from './swagger.json' assert { type: 'json' };
+import http from 'http';
+import { initSocket } from './config/socket.js';
 
 const app = express();
+const server = http.createServer(app);
+
+initSocket(server);
 
 configurePassport();
 
@@ -32,7 +37,7 @@ app.use(passport.initialize());
 
 await connectDB();
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/users', userRoutes);

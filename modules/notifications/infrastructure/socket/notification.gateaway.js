@@ -1,7 +1,8 @@
-// import io from "../../../../config/socket.config.js";
+import getIO from "../../../../config/socket.js";
 
 function emitToUser(userId, event, data) {
-    // io.to(`user:${userId}`).emit(event, data);
+    const io = getIO();
+    io.to(`user:${userId}`).emit(event, data);
 }
 
 export default { emitToUser };
