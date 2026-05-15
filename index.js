@@ -13,6 +13,7 @@ import personalRecordRoutes from './modules/statistics/routes/personalRecord.rou
 import bodyStatRoutes from './modules/statistics/routes/bodyStat.route.js';
 import workoutRoutes from './modules/workouts/routes/workout.route.js';
 import notificationRoutes from './modules/notifications/routes/notification.routes.js';
+import { startNotificationCleanupJob } from './modules/notifications/infrastructure/cron/notification.cron.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
@@ -31,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 await connectDB();
+startNotificationCleanupJob();
 
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1/auth', authRoutes);
