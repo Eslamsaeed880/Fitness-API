@@ -3,9 +3,9 @@ import { Worker } from 'bullmq';
 import connectDB from '../../../../config/mongodb.js';
 import { getBullmqConnection } from '../../../../config/bullmq.connection.js';
 import { incrementCounter } from '../../../../infrastructure/cache/cache.js';
+import redisClient from '../../../../infrastructure/cache/redis.js';
 import dedupService from '../../services/dedup.service.js';
 import Notification from '../../models/notification.model.js';
-import { emitToUser } from '../socket/notification.gateway.js';
 
 await connectDB();
 
@@ -53,18 +53,7 @@ new Worker(NOTIFICATIONS_QUEUE_NAME, async (job) => {
         // Increment unread counter in Redis
         await incrementCounter(`notif:user:${userId}:unread_count`);
 
-        // Emit to user via Socket.IO
-        emitToUser(userId, 'notification', {
-            id: savedNotification._id,
-            type: savedNotification.type,
-            actorId: savedNotification.actorId,
-            entityType: savedNotification.entityType,
-            entityId: savedNotification.entityId,
-            createdAt: savedNotification.createdAt,
-            isRead: false
-        });
-
-        console.log(`Notification sent: ${type} to user ${userId}`);
+        console.log(`Notification saved: ${type} to user ${userId}`);
     } catch (err) {
         console.error('Error processing notification job', err);
         throw err;

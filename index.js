@@ -18,13 +18,7 @@ import cors from 'cors';
 import limiter from './middleware/rateLimit.js';
 // import swaggerUi from 'swagger-ui-express';
 // import swaggerDocument from './swagger.json' assert { type: 'json' };
-import http from 'http';
-import { initSocket } from './config/socket.js';
-
 const app = express();
-const server = http.createServer(app);
-
-initSocket(server);
 
 configurePassport();
 
