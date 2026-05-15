@@ -114,7 +114,7 @@ services:
       - /build/node_modules
     networks:
       - fitness-network
-    command: node modules/notifications/infrastructure/workers/start.notifications.worker.js
+    command: node modules/notifications/infrastructure/workers/notifications.worker.js
 
   exercise-worker:
     build: .
