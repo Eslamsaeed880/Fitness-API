@@ -51,4 +51,26 @@ export async function invalidateCache(key) {
     }
 }
 
+export async function incrementCache(key, incrementBy = 1) {
+    try {
+        const newValue = await client.incrBy(key, incrementBy);
+        console.log(`Cache incremented for key: ${key}, new value: ${newValue}`);
+        return newValue;
+    } catch (error) {
+        console.error('Error incrementing cache:', error);
+        throw new APIError(500, 'Error incrementing cache');
+    }
+}
+
+export async function decrementCache(key, decrementBy = 1) {
+    try {
+        const newValue = await client.decrBy(key, decrementBy);
+        console.log(`Cache decremented for key: ${key}, new value: ${newValue}`);
+        return newValue;
+    } catch (error) {
+        console.error('Error decrementing cache:', error);
+        throw new APIError(500, 'Error decrementing cache');
+    }
+}
+
 export default client;
