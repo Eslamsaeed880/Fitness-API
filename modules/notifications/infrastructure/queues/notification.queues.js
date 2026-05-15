@@ -1,10 +1,8 @@
 import { Queue } from "bullmq";
-import connection from "../../../config/redis.config.js";
+import { getBullmqConnection } from '../../../../config/bullmq.connection.js';
 
-const notificationEventQueue = new Queue("notification:events", { connection });
+const connection = getBullmqConnection();
 
-const notificationFanoutQueue = new Queue("notification:fanout", { connection });
+const notificationsQueue = new Queue("notifications", { connection });
 
-const notificationDeliveryQueue = new Queue("notification:delivery", { connection });
-
-export default { notificationEventQueue, notificationFanoutQueue, notificationDeliveryQueue };
+export default { notificationsQueue };
