@@ -3,7 +3,6 @@ import { Worker } from 'bullmq';
 import connectDB from '../../../../config/mongodb.js';
 import { getBullmqConnection } from '../../../../config/bullmq.connection.js';
 import { incrementCounter } from '../../../../infrastructure/cache/cache.js';
-import redisClient from '../../../../infrastructure/cache/redis.js';
 import dedupService from '../../services/dedup.service.js';
 import Notification from '../../models/notification.model.js';
 
@@ -40,7 +39,7 @@ new Worker(NOTIFICATIONS_QUEUE_NAME, async (job) => {
     // Save notification to DB
     try {
         const notification = new Notification({
-            type: type || 'NOTIFICATION',
+            type: type,
             actorId,
             userId,
             entityType,
@@ -48,7 +47,7 @@ new Worker(NOTIFICATIONS_QUEUE_NAME, async (job) => {
             isRead: false
         });
 
-        const savedNotification = await notification.save();
+        await notification.save();
 
         // Increment unread counter in Redis
         await incrementCounter(`notif:user:${userId}:unread_count`);
