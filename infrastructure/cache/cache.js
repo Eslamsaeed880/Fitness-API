@@ -51,7 +51,7 @@ export async function invalidateCache(key) {
     }
 }
 
-export async function incrementCache(key, incrementBy = 1) {
+export async function incrementCounter(key, incrementBy = 1) {
     try {
         const newValue = await client.incrBy(key, incrementBy);
         console.log(`Cache incremented for key: ${key}, new value: ${newValue}`);
@@ -62,7 +62,7 @@ export async function incrementCache(key, incrementBy = 1) {
     }
 }
 
-export async function decrementCache(key, decrementBy = 1) {
+export async function decrementCounter(key, decrementBy = 1) {
     try {
         const newValue = await client.decrBy(key, decrementBy);
         console.log(`Cache decremented for key: ${key}, new value: ${newValue}`);
@@ -70,6 +70,28 @@ export async function decrementCache(key, decrementBy = 1) {
     } catch (error) {
         console.error('Error decrementing cache:', error);
         throw new APIError(500, 'Error decrementing cache');
+    }
+}
+
+export async function setCounter(key, value) {
+    try {
+        await client.set(key, String(value));
+        console.log(`Counter set for key: ${key}, value: ${value}`);
+    } catch (error) {
+        console.error('Error setting counter:', error);
+        throw new APIError(500, 'Error setting counter');
+    }
+}
+
+export async function getCounter(key) {
+    try {
+        const val = await client.get(key);
+        const numVal = parseInt(val, 10) || 0;
+        console.log(`Counter retrieved for key: ${key}, value: ${numVal}`);
+        return numVal;
+    } catch (error) {
+        console.error('Error getting counter:', error);
+        throw new APIError(500, 'Error getting counter');
     }
 }
 
