@@ -26,6 +26,14 @@ const workoutSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    likes: {
+        type: Number,
+        default: 0
+    },
+    comments: {
+        type: Number,
+        default: 0
+    }
 }, { timestamps: true });
 
 const Workout = mongoose.model('Workout', workoutSchema);

@@ -9,7 +9,7 @@ const CommentSchema = new Schema({
     },
     entityType: {
         type: String,
-        enum: ['POST', 'ROUTINE', 'WORKOUT', 'COMMENT'],
+        enum: ['POST', 'ROUTINE', 'WORKOUT'],
         required: true
     },
     entityId: {
@@ -22,6 +22,10 @@ const CommentSchema = new Schema({
         trim: true
     },
     likes: {
+        type: Number,
+        default: 0
+    },
+    replies: {
         type: Number,
         default: 0
     },

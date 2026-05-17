@@ -357,4 +357,25 @@ export default class RoutineService {
 
         return {};
     }
+
+    async incrementLikesCount(routineId) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { likes: 1 } });
+    }
+
+    async decrementLikesCount(routineId) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { likes: -1 } });
+    }
+
+    async incrementCommentsCount(routineId) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { comments: 1 } });
+    }
+
+    async decrementCommentsCount(routineId) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { comments: -1 } });
+    }
+
+    async getUserIdByRoutineId(routineId) {
+        const routine = await this.Routine.findById(routineId).select('userId');
+        return routine ? routine.userId : null;
+    }
 }

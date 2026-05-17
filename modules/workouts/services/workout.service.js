@@ -333,4 +333,25 @@ export default class WorkoutService {
             
         return exercises;
     }
+
+    async incrementLikesCount(workoutId) {
+        await this.workoutModel.findByIdAndUpdate(workoutId, { $inc: { likes: 1 } });
+    }
+
+    async decrementLikesCount(workoutId) {
+        await this.workoutModel.findByIdAndUpdate(workoutId, { $inc: { likes: -1 } });
+    }
+
+    async incrementCommentsCount(workoutId) {
+        await this.workoutModel.findByIdAndUpdate(workoutId, { $inc: { comments: 1 } });
+    }
+
+    async decrementCommentsCount(workoutId) {
+        await this.workoutModel.findByIdAndUpdate(workoutId, { $inc: { comments: -1 } });
+    }
+
+    async getUserIdByWorkoutId(workoutId) {
+        const workout = await this.workoutModel.findById(workoutId).select('userId');
+        return workout ? workout.userId : null;
+    }
 }
