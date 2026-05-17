@@ -358,20 +358,20 @@ export default class RoutineService {
         return {};
     }
 
-    async incrementLikesCount(routineId) {
-        await this.Routine.findByIdAndUpdate(routineId, { $inc: { likes: 1 } });
+    async incrementLikesCount(routineId, count = 1) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { likes: count } });
     }
 
-    async decrementLikesCount(routineId) {
-        await this.Routine.findByIdAndUpdate(routineId, { $inc: { likes: -1 } });
+    async decrementLikesCount(routineId, count = 1) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { likes: -count } });
     }
 
-    async incrementCommentsCount(routineId) {
-        await this.Routine.findByIdAndUpdate(routineId, { $inc: { comments: 1 } });
+    async incrementCommentsCount(routineId, count = 1) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { comments: count } });
     }
 
-    async decrementCommentsCount(routineId) {
-        await this.Routine.findByIdAndUpdate(routineId, { $inc: { comments: -1 } });
+    async decrementCommentsCount(routineId, count = 1) {
+        await this.Routine.findByIdAndUpdate(routineId, { $inc: { comments: -count } });
     }
 
     async getUserIdByRoutineId(routineId) {

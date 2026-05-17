@@ -78,3 +78,24 @@ export const deleteComment = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to delete comment'));
     }
 }
+
+// @Desc: Update a comment
+// @Route: PUT /api/v1/comments/:commentId
+// @Access: Private (only comment owner)
+export const updateComment = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const { content } = req.body;
+        const userId = req.user.id;
+
+        if (!commentId || !content) {
+            return res.status(400).json(new APIError(400, 'Missing required parameters: commentId, content'));
+        }
+
+        const comment = await commentService.updateComment(commentId, userId, content);
+        res.status(200).json(new APIResponse(200, 'Comment updated successfully', comment));
+    } catch (err) {
+        console.error('Error updating comment:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to update comment'));
+    }
+}

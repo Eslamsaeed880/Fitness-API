@@ -113,19 +113,11 @@ export default class CommentService {
     }
 
     async deleteComment(commentId, userId) {
-        const comment = await this.Comment.findById(commentId).populate('parentId');
-
-        switch (comment.entityType) {
-            case 'POST':
-                // Not implemented yet, but you would decrement the comments count on the post here
-                break;
-            case 'ROUTINE':
-                this.routineService.decrementCommentsCount(comment.entityId);
-                break;
-            case 'WORKOUT':
-                this.workoutService.decrementCommentsCount(comment.entityId);
-                break;
-        }
+        const [comment, childrenComments, count] = await Promise.all([
+            this.Comment.findById(commentId),
+            this.Comment.deleteMany({ parentId: commentId }),
+            this.Comment.countDocuments({ parentId: commentId }) + 1
+        ]);
 
         if (!comment) {
             return { success: false, statusCode: 404, message: 'Comment not found.' };
@@ -139,5 +131,22 @@ export default class CommentService {
 
         return { success: true, message: 'Comment deleted successfully.' };
 
+    }
+
+    async updateComment(commentId, userId, content) {
+        const comment = await this.Comment.findById(commentId);
+
+        if (!comment) {
+            throw new APIError(404, 'Comment not found.');
+        }
+
+        if (comment.userId.toString() !== userId) {
+            throw new APIError(403, 'You are not authorized to update this comment.');
+        }
+
+        comment.content = content;
+        await comment.save();
+
+        return comment;
     }
 }
