@@ -112,6 +112,31 @@ export default class CommentService {
         };
     }
 
+    async getReplies(commentId, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+
+        const [replies, totalReplies] = await Promise.all([
+                this.Comment.find({ parentId: commentId })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .populate('userId', 'username profilePicture'),
+                this.Comment.countDocuments({ parentId: commentId })
+        ]);
+
+        const totalPages = Math.ceil(totalReplies / limit);
+
+        return {
+            replies,
+            pagination: {
+                totalItems: totalReplies,
+                totalPages,
+                currentPage: page,
+                pageSize: limit
+            }
+        };
+    }
+
     async deleteComment(commentId, userId) {
         const [comment, childrenComments, count] = await Promise.all([
             this.Comment.findById(commentId),

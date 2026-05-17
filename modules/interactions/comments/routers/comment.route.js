@@ -4,12 +4,15 @@ import {
     createComment,
     getComments,
     deleteComment,
-    updateComment
+    updateComment,
+    getReplies
 } from '../controllers/comment.controller.js';
 
 const router = express.Router();
 
 router.get('/:entityId', getComments);
+
+router.get('/:commentId/replies', getReplies);
 
 router.use(isAuth);
 

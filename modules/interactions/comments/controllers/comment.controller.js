@@ -99,3 +99,23 @@ export const updateComment = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to update comment'));
     }
 }
+
+// @Desc: Get replies for a specific comment
+// @Route: GET /api/v1/comments/:commentId/replies?page=1&limit=10
+// @Access: Public
+export const getReplies = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+
+        if (!commentId) {
+            return res.status(400).json(new APIError(400, 'Missing required parameter: commentId'));
+        }
+
+        const replies = await commentService.getReplies(commentId, page, limit);
+        res.status(200).json(new APIResponse(200, 'Replies retrieved successfully', replies));
+    } catch (err) {
+        console.error('Error retrieving replies:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve replies'));
+    }
+}
