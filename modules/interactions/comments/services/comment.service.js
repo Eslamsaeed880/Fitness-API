@@ -52,15 +52,26 @@ export default class CommentService {
         });
         
         if (parentId) {
-            var parentComment = await this.Comment.findOneAndUpdate(
-                { _id: parentId, entityId, entityType },
-                { $inc: { replies: 1 } },
-                { new: true }
-            );
-
+            // Check if parent exists and is not itself a reply BEFORE incrementing
+            var parentComment = await this.Comment.findOne({
+                _id: parentId,
+                entityId,
+                entityType
+            });
+            
             if (!parentComment) {
                 throw new APIError(404, 'Parent comment not found.');
             }
+            
+            if (parentComment.parentId) {
+                throw new APIError(400, 'Cannot reply to a reply. Only one level of nesting is allowed.');
+            }
+            
+            // Now safe to increment after validation
+            await this.Comment.findByIdAndUpdate(
+                parentId,
+                { $inc: { replies: 1 } }
+            );
         };
 
         const ownerId = await this.getOwnerId(entityType, entityId);
