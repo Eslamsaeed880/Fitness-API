@@ -9,27 +9,7 @@ export default class CommentService {
         this.workoutService = WorkoutService;
     }
 
-    async createComment(entityType, entityId, userId, content, parentId = null) {
-        const comment = new this.Comment({
-            entityType,
-            entityId,
-            userId,
-            content,
-            parentId,
-        });
-        
-        if (parentId) {
-            var parentComment = await this.Comment.findOneAndUpdate(
-                { _id: parentId, entityId, entityType },
-                { $inc: { replies: 1 } },
-                { new: true }
-            );
-
-            if (!parentComment) {
-                throw new APIError(404, 'Parent comment not found.');
-            }
-        };
-
+    async getOwnerId(entityType, entityId) {
         switch (entityType) {
             case 'POST':
                 // Not implemented yet, but you would increment the comments count on the post here
@@ -58,6 +38,32 @@ export default class CommentService {
             default:
                 throw new APIError(400, 'Invalid entity type for comment.');
         }
+
+        return ownerId;
+    }
+
+    async createComment(entityType, entityId, userId, content, parentId = null) {
+        const comment = new this.Comment({
+            entityType,
+            entityId,
+            userId,
+            content,
+            parentId,
+        });
+        
+        if (parentId) {
+            var parentComment = await this.Comment.findOneAndUpdate(
+                { _id: parentId, entityId, entityType },
+                { $inc: { replies: 1 } },
+                { new: true }
+            );
+
+            if (!parentComment) {
+                throw new APIError(404, 'Parent comment not found.');
+            }
+        };
+
+        const ownerId = await this.getOwnerId(entityType, entityId);
         
         const [,,] = await Promise.all([
             queue.notificationsQueue.add('send-notification', {
