@@ -54,3 +54,27 @@ export const getComments = async (req, res) => {
         res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to retrieve comments'));
     }
 }
+
+// @Desc: Delete a comment
+// @Route: DELETE /api/v1/comments/:commentId
+// @Access: Private (only comment owner or admin)
+export const deleteComment = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const userId = req.user.id;
+
+        if (!commentId) {
+            return res.status(400).json(new APIError(400, 'Missing required parameter: commentId'));
+        }
+
+        const result = await commentService.deleteComment(commentId, userId);
+        if (!result.success) {
+            return res.status(result.statusCode).json(new APIError(result.statusCode, result.message));
+        }
+
+        res.status(200).json(new APIResponse(200, 'Comment deleted successfully'));
+    } catch (err) {
+        console.error('Error deleting comment:', err);
+        res.status(err.statusCode || 500).json(new APIError(err.statusCode || 500, err.message || 'Failed to delete comment'));
+    }
+}

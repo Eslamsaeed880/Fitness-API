@@ -111,4 +111,33 @@ export default class CommentService {
             }
         };
     }
+
+    async deleteComment(commentId, userId) {
+        const comment = await this.Comment.findById(commentId).populate('parentId');
+
+        switch (comment.entityType) {
+            case 'POST':
+                // Not implemented yet, but you would decrement the comments count on the post here
+                break;
+            case 'ROUTINE':
+                this.routineService.decrementCommentsCount(comment.entityId);
+                break;
+            case 'WORKOUT':
+                this.workoutService.decrementCommentsCount(comment.entityId);
+                break;
+        }
+
+        if (!comment) {
+            return { success: false, statusCode: 404, message: 'Comment not found.' };
+        }
+
+        const [,] = await Promise.all([
+            comment.deleteOne(),
+            (comment.parentId) &&
+            this.Comment.findByIdAndUpdate(comment.parentId, { $inc: { replies: -1 } })
+        ]);
+
+        return { success: true, message: 'Comment deleted successfully.' };
+
+    }
 }
