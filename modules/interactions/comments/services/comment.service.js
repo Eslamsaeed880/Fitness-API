@@ -86,4 +86,29 @@ export default class CommentService {
 
         return comment;
     }
+
+    async getComments(entityId, entityType, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+
+        const [comments, totalComments] = await Promise.all([
+                this.Comment.find({ entityId, entityType, parentId: null })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .populate('userId', 'username profilePicture'),
+                this.Comment.countDocuments({ entityId, entityType, parentId: null })
+        ]);
+
+        const totalPages = Math.ceil(totalComments / limit);
+
+        return {
+            comments,
+            pagination: {
+                totalItems: totalComments,
+                totalPages,
+                currentPage: page,
+                pageSize: limit
+            }
+        };
+    }
 }
